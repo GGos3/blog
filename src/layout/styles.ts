@@ -116,6 +116,22 @@ export const globalStyles = (colorScheme: 'light' | 'dark') => globalCss({
   ':not(pre) > code[class*="language-"]': {
     color: '$inlineCodeColor',
     background: '$inlineCodeBackground',
+  },
+  '.copy-button': {
+    position: 'absolute',
+    top: '0.5rem',
+    right: '0.5rem',
+    backgroundColor: '$buttonBackground',
+    border: 'none',
+    color: '$buttonText',
+    padding: '0.5rem 1rem',
+    fontSize: '0.75rem',
+    borderRadius: '0.25rem',
+    cursor: 'pointer',
+    zIndex: 1,
+  },
+  '.copy-button:hover': {
+    backgroundColor: '$buttonHoverBackground',
   }
 })();
 export const Root = styled('div', {

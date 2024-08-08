@@ -62,7 +62,6 @@ export const { styled, css, getCssText, createTheme, globalCss } = createStitche
   },
 });
 
-
 export const darkTheme = createTheme('dark-theme', {
   colors: {
     gray100: '#303136',
@@ -98,5 +97,66 @@ export const darkTheme = createTheme('dark-theme', {
     tagFilterBackground: '$primary100',
 
     headerCircleColor: '$gray200',
+
+    // Button colors removed from dark theme
+  },
+});
+
+export const copyButtonStyles = globalCss({
+  '.copy-button': {
+    position: 'absolute',
+    top: '0.5rem',
+    right: '0.5rem',
+    backgroundColor: '$copyButtonBackground',
+    border: 'none',
+    padding: '0.25rem',
+    cursor: 'pointer',
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '4px',
+    transition: 'opacity $transitionDuration $transitionTiming, visibility $transitionDuration $transitionTiming',
+    fontSize: '0.75rem',
+
+    svg: {
+      width: '1.25rem',
+      height: '1.25rem',
+      stroke: '$copyButtonText',
+      transition: 'fill $transitionDuration $transitionTiming',
+    },
+
+    '&.hidden': {
+      opacity: 0,
+      visibility: 'hidden',
+    },
+
+    '&.visible': {
+      opacity: 1,
+      visibility: 'visible',
+    },
+
+    '&:hover': {
+      backgroundColor: '$copyButtonHoverBackground',
+    },
+  },
+  'pre': {
+    position: 'relative',
+    '&:hover .copy-button': {
+      opacity: 1,
+      visibility: 'visible',
+    },
+  },
+  '.copy-button .copy-icon': {
+    display: 'block',
+  },
+  '.copy-button .check-icon': {
+    display: 'none',
+  },
+  '.copy-button.copy-success .copy-icon': {
+    display: 'none',
+  },
+  '.copy-button.copy-success .check-icon': {
+    display: 'block',
   },
 });
