@@ -72,7 +72,7 @@
     "typescript": "^5.5.4"
   },
   "resolutions": {
-    "source-map": "^0.8.0-beta.0"
+    "source-map": "^0.7.4"
   },
   "homepage": "https://github.com/blurfx/gatsby-starter-lavender#readme",
   "keywords": [
