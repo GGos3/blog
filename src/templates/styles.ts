@@ -81,6 +81,10 @@ export const Content = styled('section', {
       borderBottom: 'none',
     }
   },
+  h3: {
+    marginTop: '1.5rem',
+    marginBottom: '0.75rem',
+  },
   a: {
     borderBottom: '1px solid $borderPrimary',
 
