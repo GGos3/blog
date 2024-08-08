@@ -16,11 +16,17 @@ export const { styled, css, getCssText, createTheme, globalCss } = createStitche
       yellow: '#ffd75e',
       yellowAccent: '#ffa659',
 
+      // primary100: '#edeafc',
+      // primary200: '#bcb2f5',
+      // primary300: '#816eec',
+      // primary400: '#3b1de2',
+      // primary500: '#24128a',
+
       primary100: '#edeafc',
-      primary200: '#bcb2f5',
-      primary300: '#816eec',
-      primary400: '#3b1de2',
-      primary500: '#24128a',
+      primary200: '#99b1ff',
+      primary300: '#4671ff',
+      primary400: '#2c4495',
+      primary500: '#182c56',
 
       text100: '$gray300',
       text200: '$gray400',
@@ -73,11 +79,17 @@ export const darkTheme = createTheme('dark-theme', {
     gray700: '#f6f1ea',
     black: '#222425',
 
+    // primary100: '#edeafc',
+    // primary200: '#b9acff',
+    // primary300: '#816eec',
+    // primary400: '#3b1de2',
+    // primary500: '#221182',
+
     primary100: '#edeafc',
-    primary200: '#b9acff',
-    primary300: '#816eec',
-    primary400: '#3b1de2',
-    primary500: '#221182',
+    primary200: '#99b1ff',
+    primary300: '#4671ff',
+    primary400: '#2c4495',
+    primary500: '#182c56',
 
     text100: '$gray300',
     text200: '$gray400',

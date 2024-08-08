@@ -1,7 +1,7 @@
 const config = {
   title: 'GGos3 Blog',     // Blog name
   author: 'GGos3', // Your name
-  description: 'GGos3의 개발 블로그입니다. 주로 서버와 관련된 내용을 다룹니다.',  // Blog description
+  description: '개발 & 정리 목적의 블로그입니다. 주로 서버와 관련된 내용을 다룹니다.',  // Blog description
   siteUrl: 'https://blog.ggos3.xyz',
   thumbnail: '/thumbnails/main.png',  // Default blog thumbnail. i.e. '/thumbnails/main.png'
   social: {
