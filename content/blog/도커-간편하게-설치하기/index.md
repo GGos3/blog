@@ -1,0 +1,45 @@
+---
+title: "Linux 환경에서 Docker 간편하게 설치하기"
+date: 2023-03-11
+tags: [Server, Docker, Linux]
+image: /assets/img/[Server]-도커-간편하게-설치하기/thumbnail.png
+---
+Linux 환경에서 `Docker`를 간편하게 설치해 주는 스크립트를 발견해 간단하게 사용법을 적어 보았다.
+
+## Docker 다운로드 및 설치
+```bash {numberLines}
+curl -L get.docker.com | sh
+
+## Docker를 사용할때 앞에 sudo를 붙이지 않아도 됨 * 재시작 필요 *
+sudo usermod -aG docker $USER
+```
+
+설치를 전부 진행 했다면 명령어를 실행해 `Docker`가 정상적으로 설치 되었는지 확인한다.
+```bash
+docker run hello-world
+```
+
+아래와 같은 화면이 보인다면 성공이다
+
+```bash
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (arm64v8)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+```
