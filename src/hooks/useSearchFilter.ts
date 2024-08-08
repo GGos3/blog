@@ -1,4 +1,4 @@
-import * as qs from 'query-string';
+import qs from 'query-string';
 import { useEffect, useState } from 'react';
 
 import { useDebounce } from '~/hooks/useDebounce';
@@ -25,7 +25,6 @@ export const useSearchFilter = (): [string, (s: string) => void] => {
       window.removeEventListener('popstate', onPopState);
     };
   }, []);
-
 
   useEffect(() => {
     const params = qs.parse(location.search);
