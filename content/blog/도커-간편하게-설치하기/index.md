@@ -4,22 +4,41 @@ date: 2023-03-11
 tags: [Server, Docker, Linux]
 image: /assets/img/[Server]-도커-간편하게-설치하기/thumbnail.png
 ---
-Linux 환경에서 `Docker`를 간편하게 설치해 주는 스크립트를 발견해 간단하게 사용법을 적어 보았다.
 
-## Docker 다운로드 및 설치
-```bash {numberLines}
+Linux 환경에서 Docker를 간편하게 설치하는 방법을 알아보자.
+
+## Docker 설치 및 권한 설정
+
+### 1. Docker 설치
+```bash
 curl -L get.docker.com | sh
+```
 
-## Docker를 사용할때 앞에 sudo를 붙이지 않아도 됨 * 재시작 필요 *
+### 2. 사용자 권한 설정
+
+Docker 명령어를 `sudo` 없이 사용하기 위해 사용자를 `docker` 그룹에 추가해야 함
+
+```bash
 sudo usermod -aG docker $USER
 ```
 
+### 3. 현재 세션에서 권한 적용
+
+아래 명령어를 이용해 세션을 재시작 할 필요 없이 바로 권한을 적용할 수 있다.
+
+```bash
+newgrp docker
+```
+
+## 설치 확인
+
 설치를 전부 진행 했다면 명령어를 실행해 `Docker`가 정상적으로 설치 되었는지 확인한다.
+
 ```bash
 docker run hello-world
 ```
 
-아래와 같은 화면이 보인다면 성공이다
+정상적으로 설치되었다면 아래와 같은 메시지가 출력된다.
 
 ```bash
 Hello from Docker!
