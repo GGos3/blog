@@ -11,6 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        name: Checkout repository
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -24,8 +25,22 @@ jobs:
         run: yarn build
 
       - name: Deploy to publish branch
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Ensure the `publish` branch exists
+          git checkout -b publish || git checkout publish
+
+          # Clean the publish branch
+          git rm -r --cached .
+          rm -rf ./*
+
+          # Copy the build output to the root directory
+          cp -r public/* .
+
+          # Commit and push the build output to the publish branch
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Deploy Gatsby site"
+          git push origin publish --force
