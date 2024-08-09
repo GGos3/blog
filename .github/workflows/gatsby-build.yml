@@ -33,5 +33,5 @@ jobs:
           git checkout -B publish
           git add -f public/*
           git commit -m "Deploy Gatsby build to publish branch"
-          cat ${GH_TOKEN}
-          git push https://x-access-token:${GH_TOKEN}@github.com/GGos3/blog.git publish --force
+          cat $GH_TOKEN
+          git push https://x-access-token:$GH_TOKEN@github.com/GGos3/blog.git publish --force
