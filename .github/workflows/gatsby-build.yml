@@ -28,9 +28,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          mv ./public ../
+          
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@github.com'
           git checkout -B publish
-          git add -f public/*
+          git clean -fdx
+          
+          cp -R public/* .
+          git add -f .
           git commit -m "Deploy Gatsby build to publish branch"
           git push origin publish --force
