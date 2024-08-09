@@ -38,8 +38,8 @@ jobs:
           # Temporarily move the public directory
           mv public ../public_temp || true
           
-          # Clean all files (including previously existing public directory)
-          git clean -fdx
+          # Remove all tracked files and directories
+          git ls-files -o --exclude-standard | xargs rm -rf
           
           # Restore the public directory
           mv ../public_temp public
