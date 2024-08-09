@@ -26,16 +26,21 @@ jobs:
 
       - name: Deploy to publish branch
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          mv ./public ../
-          
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@github.com'
+
+          # Checkout to the publish branch and remove all files
+          git fetch origin
           git checkout -B publish
+          git rm -r --cached .
           git clean -fdx
-          
+
+          # Copy the build files and commit
           cp -R public/* .
-          git add -f .
+          git add .
           git commit -m "Deploy Gatsby build to publish branch"
-          git push origin publish --force
+
+          # Push the changes
+          git push https://x-access-token:${GH_TOKEN}@github.com/GGos3/blog.git publish --force
