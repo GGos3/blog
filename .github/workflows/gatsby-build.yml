@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-        name: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -26,21 +26,28 @@ jobs:
 
       - name: Deploy to publish branch
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Configure Git
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@github.com'
-
-          # Checkout to the publish branch and remove all files
-          git fetch origin
+          
+          # Checkout the publish branch, create if it doesn't exist
           git checkout -B publish
-          git rm -r --cached .
+          
+          # Temporarily move the public directory
+          mv public ../public_temp || true
+          
+          # Clean all files (including previously existing public directory)
           git clean -fdx
-
-          # Copy the build files and commit
+          
+          # Restore the public directory
+          mv ../public_temp public
+          
+          # Copy build files into the root directory
           cp -R public/* .
-          git add .
-          git commit -m "Deploy Gatsby build to publish branch"
 
-          # Push the changes
-          git push https://x-access-token:${GH_TOKEN}@github.com/GGos3/blog.git publish --force
+          # Commit and push changes
+          git add -f .
+          git commit -m "Deploy Gatsby build to publish branch"
+          git push origin publish --force
