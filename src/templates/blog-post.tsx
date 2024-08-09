@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from 'react';
 import { DiscussionEmbed } from 'disqus-react';
 import { PageProps, graphql } from 'gatsby';
-import React from 'react';
 
 import ArticleNavigator from '~/components/ArticleNavigator';
 import Profile from '~/components/Profile';
@@ -16,8 +16,8 @@ import {
   Article, TableOfContents, Content, Footer, Header, ArticleMetadata, Title
 } from './styles';
 
-
 const BlogPostTemplate = ({ data, location }: PageProps<GatsbyTypes.BlogPostBySlugQuery>) => {
+  const [isClient, setIsClient] = useState(false); // Track if we are on the client
   const post = data.markdownRemark!;
   const siteUrl = data.site?.siteMetadata?.siteUrl ?? '';
   const siteTitle = data.site?.siteMetadata?.title ?? '';
@@ -26,10 +26,15 @@ const BlogPostTemplate = ({ data, location }: PageProps<GatsbyTypes.BlogPostBySl
   const { title, description, date, tags, thumbnail } = post.frontmatter!;
   const commentConfig = useComment().site?.siteMetadata?.comment;
 
+  useEffect(() => {
+    setIsClient(true); // Set to true when mounted on the client
+  }, []);
+
   const disqusConfig = {
     title,
     identifier: post.fields?.slug,
   };
+
   const meta: Metadata[] = [];
 
   if (siteThumbnail || thumbnail) {
@@ -73,8 +78,8 @@ const BlogPostTemplate = ({ data, location }: PageProps<GatsbyTypes.BlogPostBySl
           <Profile />
         </Footer>
       </Article>
-      { commentConfig?.utterances && <Utterances repo={commentConfig.utterances} /> }
-      { commentConfig?.disqusShortName && (
+      { isClient && commentConfig?.utterances && <Utterances repo={commentConfig.utterances} /> }
+      { isClient && commentConfig?.disqusShortName && (
         <DiscussionEmbed shortname={commentConfig?.disqusShortName} config={disqusConfig} />
       )}
       <ArticleNavigator previousArticle={previous} nextArticle={next} />
