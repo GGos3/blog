@@ -31,6 +31,7 @@ jobs:
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@github.com'
           git checkout -B publish
-          git add -f public
+          git add -f public/*
           git commit -m "Deploy Gatsby build to publish branch"
+          cat ${GH_TOKEN}
           git push https://x-access-token:${GH_TOKEN}@github.com/GGos3/blog.git publish --force
