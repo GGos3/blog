@@ -96,7 +96,11 @@ export const Content = styled('section', {
     code: {
       wordBreak: 'break-all',
       overflowWrap: 'break-word',
+      backgroundColor: 'transparent'
     },
+  },
+  code: {
+    backgroundColor: '$borderGray',
   },
   'pre, code': {
     fontVariantLigatures: 'none',
