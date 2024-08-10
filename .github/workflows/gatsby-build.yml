@@ -35,18 +35,12 @@ jobs:
           # Checkout the publish branch, create if it doesn't exist
           git checkout -B publish
           
-          # Temporarily move the public directory
-          mv public ../public_temp || true
-          
-          # Remove all tracked files and directories
-          git ls-files -o --exclude-standard | xargs rm -rf
+          # Remove all files except .git
+          find . -not -name '.git' -not -name '.' -exec rm -rf {} +
           
           # Restore the public directory
-          mv ../public_temp public
+          mv ../public public || true
           
-          # Copy build files into the root directory
-          cp -R public/* .
-
           # Commit and push changes
           git add -f .
           git commit -m "Deploy Gatsby build to publish branch"
