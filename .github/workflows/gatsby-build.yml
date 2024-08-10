@@ -35,11 +35,14 @@ jobs:
           # Checkout the publish branch, create if it doesn't exist
           git checkout -B publish
           
-          # Remove all files except .git
-          find . -not -name '.git' -not -name '.' -exec rm -rf {} +
+          # Temporarily move the public directory
+          mv public ../public_temp
+          
+          # Clean the working directory
+          git clean -fdx
           
           # Restore the public directory
-          mv ../public public || true
+          mv ../public_temp public
           
           # Commit and push changes
           git add -f .
