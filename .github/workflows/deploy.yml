@@ -25,6 +25,8 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh -o StrictHostKeyChecking=no -p "$SERVER_PORT" "$SERVER_USER@$SERVER_IP" << 'EOF'
-          cd ~/blog
+            cd ~/blog
+            rm -rf *  # Remove all files and directories in the blog directory
             git fetch origin publish
+            git reset --hard origin/publish
           EOF
