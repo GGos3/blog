@@ -39,7 +39,9 @@ jobs:
           mv public ../public_temp
           
           # Remove all files except .git directory
-          find . -mindepth 1 -not -name '.git' -exec rm -rf {} +
+          rm -rf *
+          rm -rf .github
+          rm -rf .vendor
 
           # Restore the public directory
           mv ../public_temp public
