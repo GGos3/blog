@@ -32,7 +32,7 @@ newgrp docker
 
 ## 설치 확인
 
-설치를 전부 진행 했다면 명령어를 실행해 `Docker`가 정상적으로 설치 되었는지 확인한다.
+설치를 전부 진행 했다면 명령어를 실행해 `docker`가 정상적으로 설치 되었는지 확인한다.
 
 ```bash
 docker run hello-world
