@@ -2,7 +2,6 @@
 title: "Linux 환경에서 Docker 간편하게 설치하기"
 date: 2023-03-11
 tags: [Server, Docker, Linux]
-image: /assets/img/[Server]-도커-간편하게-설치하기/thumbnail.png
 ---
 
 Linux 환경에서 Docker를 간편하게 설치하는 방법을 알아보자.
