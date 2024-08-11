@@ -101,6 +101,9 @@ export const Content = styled('section', {
   },
   code: {
     backgroundColor: '$borderGray',
+    padding: '0.2rem 0.4rem',
+    borderRadius: '0.2rem',
+    fontSize: '0.875rem',
   },
   'pre, code': {
     fontVariantLigatures: 'none',
