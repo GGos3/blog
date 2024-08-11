@@ -116,7 +116,7 @@ apt install proxmox-headers-6.5.13-5-pve
 proxmox-boot-tool kernel list
 ```
 
-#### Kernel 버전 변경
+### Kernel 버전 변경
 
 이제, `Proxmox VE`에서 사용 중인 `Kernel` 버전을 변경해보자. 방법은 간단하다.
 
