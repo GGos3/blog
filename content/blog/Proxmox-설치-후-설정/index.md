@@ -1,6 +1,6 @@
 ---
 title: "Proxmox VE 설치 후 설정"
-date: 2023-03-11
+date: 2024-08-11
 tags: [Server, Linux, Proxmox]
 ---
 
