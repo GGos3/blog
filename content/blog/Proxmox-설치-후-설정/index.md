@@ -36,4 +36,4 @@ bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-i
 
 위 명령어를 실행하면 Proxmox VE Post Install 스크립트가 실행되어 필요한 설정들을 자동으로 처리해준다.
 
-스크립트 내용에는 문제될 것이 없으니, 모든 항목에 'y'를 입력하면 된다.
+스크립트 내용에는 문제될 것이 없으니, 항목들을 보고 필요한 설정에 'y'를 입력하면 된다.
