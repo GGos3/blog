@@ -24,7 +24,9 @@ tags: [Server, Docker, Traefik]
 
 ## docker-compose.yml
 
-`docker-compose.yml` 파일을 다음과 같이 구성한다. 이 파일은 Traefik과 GoAccess 두 개의 서비스로 이루어져 있다.
+`docker-compose.yml` 파일을 다음과 같이 구성한다.
+
+이 파일은 Traefik과 GoAccess 두 개의 서비스로 이루어져 있다.
 
 ```yml
 services:
@@ -78,7 +80,11 @@ GoAccess 컨테이너의 환경 변수 설정은 다음과 같다
 
 - `TZ`: 타임존을 설정한다. 여기서는 `Asia/Seoul`로 설정하였다.
 - `LOG_TYPE`: 로그 파일의 타입을 지정한다. `TRAEFIK`을 사용하여 Traefik 로그 형식을 처리한다.
-- `EXCLUDE_IPS`: 로그에서 제외할 IP를 설정한다. 만약 홈랩을 구성 중 이라면 `192.168.0.1-192.168.0.249`와 같이 홈랩 대역을 제외시킬 수 있다
+- `EXCLUDE_IPS`: 로그에서 제외할 IP를 설정한다. 
+
+> `192.168.0.1-192.168.0.249`와 같이 특정 대역을 제외시킬 수 있다.
+> 
+> 예시) `EXCLUDE_IPS=127.0.0.1,192.168.0.1-192.168.0.249`
 
 ## traefik.yml
 
