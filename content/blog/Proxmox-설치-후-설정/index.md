@@ -37,3 +37,48 @@ bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-i
 위 명령어를 실행하면 Proxmox VE Post Install 스크립트가 실행되어 필요한 설정들을 자동으로 처리해준다.
 
 스크립트 내용에는 문제될 것이 없으니, 항목들을 보고 필요한 설정에 'y'를 입력하면 된다.
+
+
+### 이전 버전 Kernal 삭제
+
+업데이트를 진행하고 난다면 이전 버전의 Kernel이 남아 있을 수 있다.
+
+여러 버전의 Kernel이 남아있으면 지저분하니 지워주도록 하자
+
+```bash
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)"
+```
+
+![img.png](img.png)
+
+스크립트를 정말로 실행할 것인지 묻는 화면이다.
+
+거침없이 `<Yes>`를 입력하자
+
+![img_1.png](img_1.png)
+
+다음은 어떤 Kernel을 삭제할 것인지 묻는 화면이다.
+
+현재 사용중인 커널은 표시되지 않으니 전부 지워도 무방하다.
+
+`SPACE`를 눌러 모두 선택한 뒤 `ENTER`를 눌러 삭제하자
+
+![img_2.png](img_2.png)
+
+`<Yes>`
+
+스크립트 실행이 끝났다면 아래 명령어를 입력해서 남은 Kernel을 확인해보자
+
+```bash
+proxmox-boot-tool kernel list
+```
+
+```bash
+Manually selected kernels:
+None.
+
+Automatically selected kernels:
+6.8.12-1-pve
+```
+
+이렇게 나오면 성공이다.
