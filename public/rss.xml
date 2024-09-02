@@ -1,0 +1,1967 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Gatsby Starter Lavendar RSS Feed]]></title><description><![CDATA[개발 & 정리 목적의 블로그입니다. 주로 서버와 관련된 내용을 다룹니다.]]></description><link>https://blog.ggos3.xyz</link><generator>GatsbyJS</generator><lastBuildDate>Mon, 02 Sep 2024 01:07:03 GMT</lastBuildDate><item><title><![CDATA[Proxmox Pinned Kernel이 동작하지 않는 문제 해결]]></title><description><![CDATA[Proxmox VE에서 Pinned Kernel이 동작하지 않는 문제를 해결하는 방법에 대해 알아보자. Pinned Kernel 확인 먼저, 현재 설정된 Pinned Kernel을 확인해보자. 아래 명령어를 통해 Pinned Kernel…]]></description><link>https://blog.ggos3.xyz/Proxmox-Pinned-kernel이-동작하지-않는-문제-해결/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Proxmox-Pinned-kernel이-동작하지-않는-문제-해결/</guid><pubDate>Mon, 26 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Proxmox VE에서 Pinned Kernel이 동작하지 않는 문제를 해결하는 방법에 대해 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;pinned-kernel-확인&quot; style=&quot;position:relative;&quot;&gt;Pinned Kernel 확인&lt;a href=&quot;#pinned-kernel-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;pinned kernel 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;먼저, 현재 설정된 Pinned Kernel을 확인해보자. 아래 명령어를 통해 Pinned Kernel의 상태를 확인할 수 있다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel list&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;위 명령어를 실행하면, 현재 시스템에 설정된 커널 목록과 Pinned Kernel이 출력된다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Manually selected kernels:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;None.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Automatically selected kernels:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;6.8.12-1-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Pinned kernel:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;결과에서 보듯이, &lt;code&gt;Pinned kernel&lt;/code&gt; 항목에 &lt;code&gt;6.5.13-5-pve&lt;/code&gt;가 설정되어 있다.&lt;/p&gt;
+&lt;p&gt;이는 현재 시스템이 &lt;code&gt;6.5.13-5-pve&lt;/code&gt; 커널을 우선적으로 사용하도록 고정되어 있음을 의미한다.&lt;/p&gt;
+&lt;p&gt;그러나, &lt;code&gt;reboot&lt;/code&gt; 이후에도 Pinned Kernel이 적용되지 않는 문제가 발생할 수 있다.&lt;/p&gt;
+&lt;p&gt;이런 경우, 다음 절차를 따라 문제를 해결할 수 있다.&lt;/p&gt;
+&lt;h2 id=&quot;문제-해결&quot; style=&quot;position:relative;&quot;&gt;문제 해결&lt;a href=&quot;#%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0&quot; aria-label=&quot;문제 해결 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;만약 Pinned Kernel이 제대로 적용되지 않는다면, 아래의 명령어를 차례대로 실행해보자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool reinit&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;이 명령어는 Proxmox의 부트 로더를 재초기화하여, Pinned Kernel 설정을 다시 적용하는 역할을 한다.&lt;/p&gt;
+&lt;p&gt;재초기화 후에는 설정이 반영되었는지 확인하기 위해 다음 명령어를 사용하자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool refresh&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;이 명령어는 부트 환경을 갱신하여, 설정된 Pinned Kernel이 정상적으로 적용되도록 한다.&lt;/p&gt;
+&lt;p&gt;과정을 마쳤다면 시스템을 다시 부팅하여 Pinned Kernel이 제대로 동작하는지 확인해보자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;4&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Linux ser8 6.5.13-5-pve &lt;/span&gt;&lt;span class=&quot;mtk5 mtki&quot;&gt;#1 SMP PREEMPT_DYNAMIC PMX 6.5.13-5 (2024-04-05T11:03Z) x86_64&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;The programs included with the Debian GNU/Linux system are free software;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;the exact distribution terms &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;each program are described&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; the&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;individual files &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; /usr/share/doc/*/copyright.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;permitted by applicable law.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;위와 같이, 시스템이 &lt;code&gt;Pinned Kernel&lt;/code&gt;로 정상적으로 부팅되었다면 문제가 해결된 것이다.&lt;/p&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtki { font-style: italic; }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk5 { color: #7F848E; }
+  .one-dark-pro .mtk9 { color: #C678DD; }
+  .one-dark-pro .mtk4 { color: #E06C75; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Proxmox Ubuntu Template 생성하기]]></title><description><![CDATA[Proxmox VE에서 Ubuntu Template을 생성하는 방법을 알아보자. Ubuntu VM 생성 먼저, Proxmox VE에서 Ubuntu VM을 생성하자. 보통은 ISO 이미지 파일을 이용해 VM…]]></description><link>https://blog.ggos3.xyz/Proxmox-Ubuntu-Template-생성하기/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Proxmox-Ubuntu-Template-생성하기/</guid><pubDate>Sun, 25 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Proxmox VE에서 Ubuntu Template을 생성하는 방법을 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;ubuntu-vm-생성&quot; style=&quot;position:relative;&quot;&gt;Ubuntu VM 생성&lt;a href=&quot;#ubuntu-vm-%EC%83%9D%EC%84%B1&quot; aria-label=&quot;ubuntu vm 생성 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;먼저, Proxmox VE에서 Ubuntu VM을 생성하자.&lt;/p&gt;
+&lt;p&gt;보통은 ISO 이미지 파일을 이용해 VM을 생성하고 설치해야 하지만, 이 과정을 생략할 수 있는 &lt;code&gt;qcow2&lt;/code&gt; 이미지와 스크립트를 활용해 템플릿을 만들 수 있다.&lt;/p&gt;
+&lt;h3 id=&quot;스크립트-실행&quot; style=&quot;position:relative;&quot;&gt;스크립트 실행&lt;a href=&quot;#%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%8B%A4%ED%96%89&quot; aria-label=&quot;스크립트 실행 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;스크립트는 Proxmox가 설치된 노드의 Shell에서 실행하자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;bash -c &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/vm/ubuntu2404-vm.sh)&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;명령어를 실행하면 다음과 같은 화면이 나타난다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/e668ccdc1a1df8d8dee13d92c93ccb05/96e86/img.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.89873417721519%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABh0lEQVR42pWSyU7CUBSGb0scX8URDLboysQHcGd048rX0QUL1NghWBWnxJUbh0gZKoOQtgQLFAy+yO/pQEwUiS6+nCG5370n97BpMYvJ1SZhYWrVxsSKDRb/LybYchv8wh0YFyuBCe/U6BBugPCdzpDeoO/RAhM/wEcfwfglg4ouOK8p0C1iC5GEg4j45scxiuMUxymOhT0PnnJOdP0zTHDI0SfhA70wFHoiFu0gum1COi/gQDOQOiniSNEhhRyqOaS0IlJpA9qNgaVNHWzRe8QwYYKECy7Wduswa1lUSjlUqgVUXwsoGc8ol3S8VvLU1/Fi5NBrGVjfuQSb8yZq/SbskNCE0zRhvzmw7p9g63k0KG80GqjVajBNC5bdhOvUSXg7QuiP3EVsqwwtLUFJq1D29qEkk1ApV1UZknQMWZYgKyoyp4eIb6g0sjt8ZP+n6Oe4uAV+9gL8TIbW4Br8/FVQ+1x+xZkz8DE9PPursB2sAa2Aj9APGNQ/6IXnRgrbYf4X2j/W5hMK2caTdHiHEwAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Ubuntu 24.04 VM 생성 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/e668ccdc1a1df8d8dee13d92c93ccb05/f058b/img.png&quot;
+        srcset=&quot;/static/e668ccdc1a1df8d8dee13d92c93ccb05/c26ae/img.png 158w,
+/static/e668ccdc1a1df8d8dee13d92c93ccb05/6bdcf/img.png 315w,
+/static/e668ccdc1a1df8d8dee13d92c93ccb05/f058b/img.png 630w,
+/static/e668ccdc1a1df8d8dee13d92c93ccb05/40601/img.png 945w,
+/static/e668ccdc1a1df8d8dee13d92c93ccb05/96e86/img.png 1089w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Ubuntu 24.04 VM을 새로 생성할 것인지 묻는 화면이다. &lt;code&gt;&amp;#x3C;Yes&gt;&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/d5c6ba810bd52f81b91cecb03de28593/48ca3/img_1.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.89873417721519%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABeUlEQVR42pWQ20oCURSGZy7K8mUyz6A9T3QXdNVNRbcFUWF2sDyMjhragRFD1AQLx5A8jcfRNKz3+FuaMYoWdvGxNv/i//ZmM2rLKxasNahXKli0VqGyVMAYq/+EOiYZrDYNhjX0BW2ipWBqz0hriAzG/A5WJ5LQKClhH2MTjKFBU4HV18Ea6sO8OaQxIqWzuUvCjCJkzSTTN7G6k4PzWsSxS4Sdy8LuFnHhSOOcsLszsHn6uwyugi9Y24qD0dXADl44VShj+yCBp8dbCPdhxGMCopEbRITwYApEMvmARCwCKf+MoxMfGE2Juq1fhNoG9i/z6LQkFEsScrkcCoUiyqUyytUqiokUJDGLcqWG7lsTh6fhv4T0L/o21nejuAu54PV5wXmc4H0e+HkO/oAPvN0G3nFGOw43IS82NvfoEdJ0IWMiobmDOX0KqiUOKk2A8I+jDRI/OY/55fB3b9CdEMrDZZf4JD4mMfZo9kayntKbLpSVG2dmXPgFbWjJLUXaImYAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;SSH 설치 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/d5c6ba810bd52f81b91cecb03de28593/f058b/img_1.png&quot;
+        srcset=&quot;/static/d5c6ba810bd52f81b91cecb03de28593/c26ae/img_1.png 158w,
+/static/d5c6ba810bd52f81b91cecb03de28593/6bdcf/img_1.png 315w,
+/static/d5c6ba810bd52f81b91cecb03de28593/f058b/img_1.png 630w,
+/static/d5c6ba810bd52f81b91cecb03de28593/40601/img_1.png 945w,
+/static/d5c6ba810bd52f81b91cecb03de28593/48ca3/img_1.png 1084w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;다음으로 SSH를 통해 설치를 진행할 것인지 묻는 화면이 나타난다. Proxmox 웹 인터페이스의 Shell을 사용하는 것이 좋지만, 이미 SSH로 접속한 경우 &lt;code&gt;&amp;#x3C;Yes&gt;&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;h3 id=&quot;vm-옵션-설정&quot; style=&quot;position:relative;&quot;&gt;VM 옵션 설정&lt;a href=&quot;#vm-%EC%98%B5%EC%85%98-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;vm 옵션 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/bf57af05978468972960021e64ae4f89/d3f96/img_2.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.89873417721519%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABo0lEQVR42pWSy07CUBCGj0W8PYooKCq0yNKVSxfqwrU+ixtNvECUS4IaIYqKl5VxQeSmtGhobQsUiInG1/idUjAaJcHFl9NzOvOdaWfYCJ/BoL+CIf8Lhv0qBmdVMM9/UcD4JjjnOVif+wHM26TDGmFYeOs9QjleM74KJryDc12DcVMFsjfQZx5SAMdXYfdVfjDAq4SGfkH/wk5wfEdaIeEbCa+owrbQFLFJAzMrZRwlc4gk8ojGs4gmcjiOW8SSRRwQsaSIk8s8xhfSYBMG5f4htAkkdNUxt/qEspTGY+EeRSkHUcxCkUUoZRGqLEFVSvRcgqFm4VtMgjkN2LoLDcytlVHTZSh6FcrtHZRMDrKqkVSBJJVQKDzg6VlGTStBWEp1F7Y+2d2Ae/kRodA+AntRBNY3ENjcRjAURXAvjN3gPrZ2grRGEAnvwjF/SL/JzNV/C1udMjs2I4M5qP2OM7r9Emw81d4TYxcWDmL0FFYuNcbzvcLpIm1erRemmObJHIEWfBuhC3wnjwrxfZDwxpzDrNV6j0bobbQe6cSrLTnnTOETO/PGht9JqA4AAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 옵션 설정 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/bf57af05978468972960021e64ae4f89/f058b/img_2.png&quot;
+        srcset=&quot;/static/bf57af05978468972960021e64ae4f89/c26ae/img_2.png 158w,
+/static/bf57af05978468972960021e64ae4f89/6bdcf/img_2.png 315w,
+/static/bf57af05978468972960021e64ae4f89/f058b/img_2.png 630w,
+/static/bf57af05978468972960021e64ae4f89/40601/img_2.png 945w,
+/static/bf57af05978468972960021e64ae4f89/d3f96/img_2.png 1093w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;다음으로 VM의 옵션을 설정할지 묻는 화면이다. 기본 설정을 그대로 사용하고 싶다면 &lt;code&gt;&amp;#x3C;Yes&gt;&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;p&gt;그러나, VM ID를 특정 값으로 설정하고 싶다면 &lt;code&gt;&amp;#x3C;Advanced&gt;&lt;/code&gt;를 선택하자. 예를 들어, VM ID를 &lt;code&gt;1000&lt;/code&gt;으로 설정해보자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/dc92b66bd0e92bbd76dfe65a82a1f444/eb4a1/img_3.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.89873417721519%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABbklEQVR42qWSu04CURCGz0Kh8gw2WkmhJkLkIpUxNqidicYGTTA2aBSQwsYKfASDhYmrDYgaNV6oMCKX5ZoAyrLgq/zOHjQkuF6ixZeZneR8O2fmMIM9i17HMwyOKvqInokq2Hjt7zBTiZIW0SAUCBYFets32DsIVgXM0oVgLlLSJGSCpGYqjtAPRlWa7Tii1ppthpUOZvq2NtrnPmDvQsEqc1m/s4oFXxrzm8RWCoueRyxTvkK4/BKWAnmiANdODgOzZTCT2qmGUGeTeUeT7iJOL5PYP35C+CSFsJjEUUSCGMlBjOYhxoo4jJZxfpOB031Gnco0Cg2hngsVTK2VkZEqiD+84Oq+gHiiRnkNd4kKLm4lxK7TFItIZUuYW42RsK4t5Fc2tTA4k8bGdgjrvhA83iCPHL8agxyPbw/ewC6M0wd05hU6q/xZyJeizsJUBzPmf2YoBzZGz4RvuvGFkArqgPX25q8QujesJfwvb+nBu8rbrT+eAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM ID 설정 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/dc92b66bd0e92bbd76dfe65a82a1f444/f058b/img_3.png&quot;
+        srcset=&quot;/static/dc92b66bd0e92bbd76dfe65a82a1f444/c26ae/img_3.png 158w,
+/static/dc92b66bd0e92bbd76dfe65a82a1f444/6bdcf/img_3.png 315w,
+/static/dc92b66bd0e92bbd76dfe65a82a1f444/f058b/img_3.png 630w,
+/static/dc92b66bd0e92bbd76dfe65a82a1f444/40601/img_3.png 945w,
+/static/dc92b66bd0e92bbd76dfe65a82a1f444/eb4a1/img_3.png 1083w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;위와 같은 화면이 나타나면 원하는 VM ID 값을 입력하고 &lt;code&gt;&amp;#x3C;OK&gt;&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;p&gt;그 후, 추가적인 설정 화면이 나타난다. 필요한 VM 옵션을 변경한 후 &lt;code&gt;&amp;#x3C;Enter&gt;&lt;/code&gt; 키나 &lt;code&gt;&amp;#x3C;OK&gt;&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;h4 id=&quot;ggos3-기본-설정&quot; style=&quot;position:relative;&quot;&gt;GGos3 기본 설정&lt;a href=&quot;#ggos3-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;ggos3 기본 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;참고로, GGos3의 기본 설정은 다음과 같다:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;VM ID: 1000&lt;/li&gt;
+&lt;li&gt;Machine Type: q35&lt;/li&gt;
+&lt;li&gt;Hostname: ubuntu-24.04-template&lt;/li&gt;
+&lt;li&gt;CPU Model: Host&lt;/li&gt;
+&lt;li&gt;Allocated Cores: 1&lt;/li&gt;
+&lt;li&gt;RAM: 1024&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;vm-생성-완료&quot; style=&quot;position:relative;&quot;&gt;VM 생성 완료&lt;a href=&quot;#vm-%EC%83%9D%EC%84%B1-%EC%99%84%EB%A3%8C&quot; aria-label=&quot;vm 생성 완료 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;모든 설정을 마치면 스크립트가 VM을 생성한다. 이때, &lt;code&gt;qcow2&lt;/code&gt; 이미지 파일을 다운로드받는 과정을 거친다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/99661/img_7.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 45.56962025316456%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAIAAAC9o5sfAAAACXBIWXMAAAsTAAALEwEAmpwYAAABCUlEQVR42o1Py26EMBDjWDGesORBHiQBCpSiqpf+/8c1G3VX2z1UtSzHGsmW01ACvRJNRIkwgRcggovZrp7XqrGaFbgAhDsaHYSOnU6dSd0lMWewB4+VueoAlEsCHMB4RDOmPk6yaJ6kSoJegLbW34nf/jFM76ATtIO+iD/qwoB/ohE7izfuToj958R1G9/4V5gOFOKTcBKNoAXk0NJ1e3v7wa3kuaoxq9ALm73TG6sZaoHqWQKKWTJrZgEiatG25XkO2yz9GcK++T26I4d1dslYa51yVtugbS8NSyOKXuRjkpkbG6PLi5vmtB1+Wm2aC804sbKQBv01JpQ1IY95KaXee6XUMAzW2m+kmCP9T95NLQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 생성 중 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/f058b/img_7.png&quot;
+        srcset=&quot;/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/c26ae/img_7.png 158w,
+/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/6bdcf/img_7.png 315w,
+/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/f058b/img_7.png 630w,
+/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/40601/img_7.png 945w,
+/static/ae2c2787dccb3e1bc8e0b38f8e634cf1/99661/img_7.png 1098w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;다운로드가 완료되면 아래와 같은 화면이 나타나며 VM 생성이 완료된다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/03f91dffbf38d43d1facd672682bb8a0/f0685/image.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 73.41772151898735%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAPCAYAAADkmO9VAAAACXBIWXMAAA7DAAAOwwHHb6hkAAACCklEQVR42pWUWW/bMBCE9Vibh3jpJCnbcX0GTYu0QP//L5sOGedAkwDtw4fhrsjBkkuq6YcewziQ8UXHacQ0TRg57vsezjkMw/CSe8Z7Xynj8q3QxH7ETPI4Iw4TGavO81wnWGur6bNZ0RIXjDH1e8l3XYcQAppN8liSw5IdUrTYRY+YDdYrASnkE/JjhBDvco0+K8izhCLyK/VeQl851sTeUJ+bfmiojjS50OyO+oN6IukpVrubufhXwwMNWVExVYdbpSuyfoP8nwqPqm6x6gP1G00nEsn8pP+1ZXXhGbIyeeIBfydXsjDeE1YtfTl8It/zaqReDfPWIW9bpG2HTR6Qdh55Y7AcDXKyiJ1BCgaxZWwYty3VVGTpsli/QaBxvCrdQ4f+sEF/vkM4Jti9Q3c9IMQAt3Fws4dtLbzzvOTMOd4530FbD81YW8Kc4pxGJwPzGHmOAeayh788wJ/v4Y9X+MNPhNNvhDM5/YLNJ7TjBjpMlTaMMEMiGW0f0foBjY8ay+MK8bpGZEPmk0K6Vxj3AnGXsDtmHsmEvItY9gmJDyG4FcRafLxlNUoYGlk2wJwF2oOALvewY8fFClp+QauKFtbQSkC96/qbpqScMEW+46LzhBLPiXGMJHGxvi1Q7KyqHa+LP7lKTUqJ3cz10S9Lrkbb7RY5c6t5uWmqWuY+syxL/Tn8/Z7/AKYfbmvhZhEjAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 생성 완료 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/03f91dffbf38d43d1facd672682bb8a0/f058b/image.png&quot;
+        srcset=&quot;/static/03f91dffbf38d43d1facd672682bb8a0/c26ae/image.png 158w,
+/static/03f91dffbf38d43d1facd672682bb8a0/6bdcf/image.png 315w,
+/static/03f91dffbf38d43d1facd672682bb8a0/f058b/image.png 630w,
+/static/03f91dffbf38d43d1facd672682bb8a0/f0685/image.png 835w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;이제 Proxmox 웹 인터페이스에서 생성된 VM을 확인할 수 있다.&lt;/p&gt;
+&lt;h2 id=&quot;template-설정&quot; style=&quot;position:relative;&quot;&gt;Template 설정&lt;a href=&quot;#template-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;template 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;이제 생성된 VM을 이용해 Template을 생성해보자.&lt;/p&gt;
+&lt;p&gt;VM이 실행 중이라면 먼저 STOP을 시키자.&lt;/p&gt;
+&lt;h3 id=&quot;vm-disk-크기-변경&quot; style=&quot;position:relative;&quot;&gt;VM Disk 크기 변경&lt;a href=&quot;#vm-disk-%ED%81%AC%EA%B8%B0-%EB%B3%80%EA%B2%BD&quot; aria-label=&quot;vm disk 크기 변경 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;VM의 Hardware 탭으로 이동하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/b942eeac3c8e25ad6115c22b8a897c0e/f8836/img_9.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 41.77215189873418%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJUlEQVR42q2Qy07DQAxF8yVt0iZNREqaeWcmT0RDURdIrBDi/7/jMrbUHZQNiyN7/LgeOwnOIlgNowT6foBzDtYYdF3Acn7H+foJP6yojzUe6ho65oy1EFJCCInOe455H3BeVySP6weK9QvH8QpnFA6HA3a7HeanZ7xcLrBxoFAS2nlGGgupI8ZBWRdzhn2yjVBIuvUNdf8K4WcE3yHNMmw2GxgTfx0nk3iaZpEUWczdg2qT3lto0UBLWrlH27acUEqxYJ7nKIqCLYlS7h5JCIFv0bYC4zhimiZeWwjB/rIsmOeZb9s0Dfb7PbbbLYv/BAv6eNjT6YRhGKC1ZkEbD09xEqIaildV9fcPqZGaqLgsS4YE6U2W1iXIJ241v5FQ8a35P/gGIb3zwdMXoeMAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Hardware 탭 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/b942eeac3c8e25ad6115c22b8a897c0e/f058b/img_9.png&quot;
+        srcset=&quot;/static/b942eeac3c8e25ad6115c22b8a897c0e/c26ae/img_9.png 158w,
+/static/b942eeac3c8e25ad6115c22b8a897c0e/6bdcf/img_9.png 315w,
+/static/b942eeac3c8e25ad6115c22b8a897c0e/f058b/img_9.png 630w,
+/static/b942eeac3c8e25ad6115c22b8a897c0e/40601/img_9.png 945w,
+/static/b942eeac3c8e25ad6115c22b8a897c0e/f8836/img_9.png 1214w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Hard Disk (scsi0)&lt;/code&gt;의 크기가 3584M으로 설정되어 있는데, 이를 변경해야 한다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/63b4b316cb72aae45cb5feb803cb4cf8/f8836/img_10.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 39.87341772151899%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQElEQVR42pWRyW6DMBRF+ZBMEIYkTCEUDGaGDglpU7Kgy6qbqv//Bbd+lthEaqQuju6zwQ98nsJZDBYGYHEEzjOURYGUc9jZCfnrD46Xb6RlD9M0BCYYY4jjGEEQYL/fI8syRFGEPM8xDAMUv32Hznt4cQ4WPcDzPLiej9PHF57eBtg7C6q6lM0Mw8B6vZboui6ZakpN06CwyyfMdkRYvSBlERaLJTRVxfH5EV3bYLPZYLlayT06QKiivmV6pnRVgdBzkIgrV1UtG8znc4RhKP7WFx9YYCUaUs5mM5n3UOq6gS9clGWJcRxxvV5RCI/n81nW5IWy73s0TSM8c6Rp+ieiYS0lHw4HdF2HJEnguq6U3LathPZpTX632+1dFHqRpkQL27bllUmw4ziwLEsOgqChTPLvodAhYpoi5W39H34Bnvr4FpEHlDEAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;디스크 크기 변경 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/63b4b316cb72aae45cb5feb803cb4cf8/f058b/img_10.png&quot;
+        srcset=&quot;/static/63b4b316cb72aae45cb5feb803cb4cf8/c26ae/img_10.png 158w,
+/static/63b4b316cb72aae45cb5feb803cb4cf8/6bdcf/img_10.png 315w,
+/static/63b4b316cb72aae45cb5feb803cb4cf8/f058b/img_10.png 630w,
+/static/63b4b316cb72aae45cb5feb803cb4cf8/40601/img_10.png 945w,
+/static/63b4b316cb72aae45cb5feb803cb4cf8/f8836/img_10.png 1214w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Hard Disk (scsi0)&lt;/code&gt;를 선택하고 &lt;code&gt;Disk Action&lt;/code&gt;에서 &lt;code&gt;Resize disk&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 512px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/e6d11bde532d1933216145663a48b1c9/01e7c/img_11.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 63.92405063291139%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAANCAYAAACpUE5eAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQ0lEQVR42q2SX06EMBCH9xiuQqG0pfwpoOyShReWLEY9gkfwzXgBr2LiRX9Ou3E1ykJMfPhSmLZfp9NZxXGMSbT+Ym7Nj9hqaqGSAlJ8Q8rfUFwpNS/UdCLnHFwocBkjpNESBMGJMAyP37SOhRxRFLl9Z4W+70GWW2TdLUw3It8NpzmbUWQzoxvo8gY8NWC+Py/0PA9VVWJT1xAiIol0InvNLMvQti2SJHExzo/ZLgqbpkHXdW5jlmcoisLJ8jzHfj/AFCXFDQQdwhhbFtaU3TAMOBwOGMfRjX3fI01TNHWFKk/QXBskSiwLfaqJoDq516ZrfSLtixJi00Ps7iDae/j5FgFbqKE9cUqo6F9G1AGPrzDPbzAv71g/PIFdraGpNGf70Mqs9ByXLMSFzx1eELrHWmzsOTSR6CN6Yv7PwiX+XfgBgax6nvkxQ4QAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;디스크 크기 입력 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/e6d11bde532d1933216145663a48b1c9/01e7c/img_11.png&quot;
+        srcset=&quot;/static/e6d11bde532d1933216145663a48b1c9/c26ae/img_11.png 158w,
+/static/e6d11bde532d1933216145663a48b1c9/6bdcf/img_11.png 315w,
+/static/e6d11bde532d1933216145663a48b1c9/01e7c/img_11.png 512w&quot;
+        sizes=&quot;(max-width: 512px) 100vw, 512px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;위와 같은 창이 나타나면 원하는 크기를 입력하고 &lt;code&gt;Resize disk&lt;/code&gt;를 선택하자.&lt;/p&gt;
+&lt;p&gt;참고로, VM Disk Size를 줄이는 것은 매우 번거로우니 최소한의 크기로 설정해두는 것이 좋다.&lt;/p&gt;
+&lt;p&gt;위와 같이 설정하면 VM Disk Size는 8GB = 3.5(이미지 파일)GB + 5GB가 된다.&lt;/p&gt;
+&lt;h3 id=&quot;cloud-init-설정&quot; style=&quot;position:relative;&quot;&gt;Cloud-Init 설정&lt;a href=&quot;#cloud-init-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;cloud init 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;다음은 템플릿의 Cloud-Init 설정을 하자.&lt;/p&gt;
+&lt;p&gt;해당 VM의 &lt;code&gt;Cloud-Init&lt;/code&gt; 탭으로 이동하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/a1cebdbc49f5a874a140dc316413784e/8de58/img_12.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 43.0379746835443%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA70lEQVR42q2Sy07DMBBF/Sd5OQ+nDa6dOEFJ47q0qBSaRX+ADWv+f3kZR6pArIjo4mjGCx/NHZuZ7hF13RAaTVOja1vCoN9NeL584PD6jupBgfMEQggMwwCtNaSUdKdG3/cwxsA5h2mawDpVQVZrnM4XDNbheDpT/4aNkgjDAGnKiRRZls1w/n329TdMXD+R2Cue9nuSKERxgnK1pmkbiLIkaYgoiv4MM+4FpWphxy0MSYIgQEmiWUgRlwv1BitRYBxHbImiKJDn+RwtjuO5LoG19Ah+H17ys976pTBr7TzVTfJfmP8CdxX63PeSeeEX3SwLliaOp5IAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Cloud-Init 탭 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/a1cebdbc49f5a874a140dc316413784e/f058b/img_12.png&quot;
+        srcset=&quot;/static/a1cebdbc49f5a874a140dc316413784e/c26ae/img_12.png 158w,
+/static/a1cebdbc49f5a874a140dc316413784e/6bdcf/img_12.png 315w,
+/static/a1cebdbc49f5a874a140dc316413784e/f058b/img_12.png 630w,
+/static/a1cebdbc49f5a874a140dc316413784e/40601/img_12.png 945w,
+/static/a1cebdbc49f5a874a140dc316413784e/8de58/img_12.png 1219w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;위 사진과 같이 아무런 설정도 되어있지 않을 텐데, 원하는 정보로 설정한 뒤 &lt;code&gt;Regenerate Image&lt;/code&gt; 버튼을 누르자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/88e1103f336a08ae26532d8f57c547a4/a3767/img_13.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 39.87341772151899%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABAklEQVR42q2Py04DIRiFeZFJ5tK5xbS0MMAwF5jWNpmqNePepX3/RzgCiaYLF9a4+AIEzvcfyDj06DsNKQT6YYCxFsfjI+x0wDS/43S5Yti/oqoqFGUF1bZoHTvGAoPLSCkxjCOW5Q1EKI01ZRBS4el8Dg+sk87PF8hWYssouGggdBfgsg00LudhLufPTChQ1oDslivi+QMP5gWnw4S6rhFFETjnmKa9a1YjSVOk32Q3+xuyDJmDGBfyE7aMu2/aUD+OY2w2a1BKkSRJOP8WYo1B49r4ZsytXlIUBfI8DxP9/h6IccKu64JgtVoFvi7LsrxfqLWGUvJP4R+Fvtl/ybzwE+hy80R699pkAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Cloud-Init 설정 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/88e1103f336a08ae26532d8f57c547a4/f058b/img_13.png&quot;
+        srcset=&quot;/static/88e1103f336a08ae26532d8f57c547a4/c26ae/img_13.png 158w,
+/static/88e1103f336a08ae26532d8f57c547a4/6bdcf/img_13.png 315w,
+/static/88e1103f336a08ae26532d8f57c547a4/f058b/img_13.png 630w,
+/static/88e1103f336a08ae26532d8f57c547a4/40601/img_13.png 945w,
+/static/88e1103f336a08ae26532d8f57c547a4/a3767/img_13.png 1210w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;필자는 User, Password, SSH Public key를 설정했다.&lt;/p&gt;
+&lt;h3 id=&quot;template-생성&quot; style=&quot;position:relative;&quot;&gt;Template 생성&lt;a href=&quot;#template-%EC%83%9D%EC%84%B1&quot; aria-label=&quot;template 생성 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;모든 설정이 끝나면 VM을 선택하고 &lt;code&gt;More&lt;/code&gt; -&gt; &lt;code&gt;Convert to Template&lt;/code&gt;을 선택하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 363px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/0ca7195740ea1d4a25fb7de43764a388/4e786/img_14.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 8.227848101265824%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAACCAYAAABYBvyLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAfUlEQVR42lXMSw6CMBhFYTZDo9EBYnRA6ePvAyQ1MUbc/1KOhZmDM7m5+Zr+2rN+vnjrKM+CEyFGIaVIrulREyTga9uep5nHMuGs5W5WDsczqm1RSu013aWjlNcOhhgY63HDUkqkCgx6wIwGYz0innleyDkh3nHT7wqe/sAfuhdEEBgxZHgAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Template 변환 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/0ca7195740ea1d4a25fb7de43764a388/4e786/img_14.png&quot;
+        srcset=&quot;/static/0ca7195740ea1d4a25fb7de43764a388/c26ae/img_14.png 158w,
+/static/0ca7195740ea1d4a25fb7de43764a388/6bdcf/img_14.png 315w,
+/static/0ca7195740ea1d4a25fb7de43764a388/4e786/img_14.png 363w&quot;
+        sizes=&quot;(max-width: 363px) 100vw, 363px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;위와 같이 VM 아이콘이 변경되면 Template 생성이 완료된 것이다.&lt;/p&gt;
+&lt;h2 id=&quot;template-사용&quot; style=&quot;position:relative;&quot;&gt;Template 사용&lt;a href=&quot;#template-%EC%82%AC%EC%9A%A9&quot; aria-label=&quot;template 사용 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;이제 생성된 Template을 이용해 VM을 생성해보자.&lt;/p&gt;
+&lt;p&gt;먼저 생성된 Template을 우클릭한 뒤 &lt;code&gt;Clone&lt;/code&gt;을 선택하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 454px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/85050814fc9ac70461fdc2de2bf5a048/b3c1d/img_15.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 37.9746835443038%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABn0lEQVR42oWRXW/SYBSAm/gLTLxRoZRAP4jgBkHWdi2l7fhap8JEerElRpZRWGBxhHmrlyZeeLV/oDf+yce3TYgajV48eXOSc57z8UpnZ+esV2uSJGGezDMWi4TZbMb8ck6yWLC+XrFcXhGN32B7IWY7xPF8lKbPff+CB/5blOgK+XiJNBges9lsOIki4njK68mE09Mx0zhmPBrhug5BENARb7kZkl99Rd9+R7n+hjS5Q5recS/6iPmsQeupgWRadjaRZVn4fiDwsUyTvf19arUaiqJQLBYp5HMUVIOTm88M1p8Y3X7BvRSi2Qea8Tue1PY46vaQ3LbH++2WTicQk4R0j0Jcx6VaraKqKrquZ2iqhqapPB+EDEKPVy+G9H2HlyLudg5pNBrZUJJpWlyIex06YjUhddsOba9DGIboWir5SblcJifL5PIFHj7K8TgvcyDqW60Der0e9XodKU2S5UKW/CulUuk32Q7DMDIqlUoWp409z8uEw+EQaZf0Z7H+V+GO9Bxp41RmipunH+eILaV/Ff1PmJKKbNum3+9n4h8GOQ15FMZueQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Template Clone 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/85050814fc9ac70461fdc2de2bf5a048/b3c1d/img_15.png&quot;
+        srcset=&quot;/static/85050814fc9ac70461fdc2de2bf5a048/c26ae/img_15.png 158w,
+/static/85050814fc9ac70461fdc2de2bf5a048/6bdcf/img_15.png 315w,
+/static/85050814fc9ac70461fdc2de2bf5a048/b3c1d/img_15.png 454w&quot;
+        sizes=&quot;(max-width: 454px) 100vw, 454px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;다음으로 VM의 정보를 설정하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/16debe44853442dedb9e44ad93ee6bd9/31493/img_16.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 41.77215189873418%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQUlEQVR42pWSTW6DMBCFOUMX3Tb8GRuIMTZQklZNKGLRRS9RFlwjd+iBX2cmipRK3XTxCQs/vzczdlRYDx2OQvV8huleYcILVFEgzzMiF7LsulZKCWmaCvKfUNogVgaRDwHT+4y+H6BNidPphLZtsd/vYa1F0zSoqgqHwwGBtEmSwBiDeZ6xLAuOx6NonWtRUBFR3/ckHiWVhedpgiPD1nuBA61tUNe1mPNh1t3C+MuBvM8dROM4SnK820GXFZaPT7ydJ1jfoQk9XDegajxKOsRmXAXDZoxzTmBjHkE0DIO0ycaWBG3Xw1P7jQ+CCx1qqpA7YKPbDLXWv+CqeRwRb5ZlCUNouQgaPFGwwR3qD25aRZdXqBxJHF8NOeE+/b/khYYyFeI0Q7SuKy6XC7ZtkyfwPzMqIkvxuGx4Wr/xMH3hB9VT9BPF53NYAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 정보 설정 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/16debe44853442dedb9e44ad93ee6bd9/f058b/img_16.png&quot;
+        srcset=&quot;/static/16debe44853442dedb9e44ad93ee6bd9/c26ae/img_16.png 158w,
+/static/16debe44853442dedb9e44ad93ee6bd9/6bdcf/img_16.png 315w,
+/static/16debe44853442dedb9e44ad93ee6bd9/f058b/img_16.png 630w,
+/static/16debe44853442dedb9e44ad93ee6bd9/31493/img_16.png 664w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;설정이 완료되면 &lt;code&gt;Clone&lt;/code&gt;을 선택하자.&lt;/p&gt;
+&lt;p&gt;이제 생성된 VM의 Cloud-Init으로 이동하여 IP를 설정하자.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/4c7a8df32275ccc4662f21692f985b19/0012b/img_17.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 35.44303797468354%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAHCAYAAAAIy204AAAACXBIWXMAAAsTAAALEwEAmpwYAAABPUlEQVR42l2Qy07DMBBF8wmIBUtEHk1i5+E4sZ1300SpEEIsEBLiW/j5yzhVqpbFka/H47kz40RCIdYjuJ7Aqh6MdBhFCMPwjohiO/s9vOoYYV7BZwkcpTW6foBpWsiyRKUNgsOBEu+LBkGAA8X38xYbswae78Np2xYdMZ9O0FqhNhpFIeB53t3nqqooXqBpGgghoJSClHLTxpjN1PNcOPZyPB4poULMOIbljIkY5xW66cFFiTgVqOsa0zSRqQbnfDOwBUuaSikNUUhaQQzHJq7rir7vya3Acn7F2/sHxtNM49colUGaF1vBZVkwDMPWle3WFpOyRJknUCJBEgVw0jRFlmXI8xxJkpBOIUhzzsBYfD0vb9mG1bbLCwy+msHmLzwXIxzXdbFj93ar//M/1+K7L3jsvvH0+YuH7gd/NKHWlwpZGjQAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;IP 설정 화면&quot;
+        title=&quot;&quot;
+        src=&quot;/static/4c7a8df32275ccc4662f21692f985b19/f058b/img_17.png&quot;
+        srcset=&quot;/static/4c7a8df32275ccc4662f21692f985b19/c26ae/img_17.png 158w,
+/static/4c7a8df32275ccc4662f21692f985b19/6bdcf/img_17.png 315w,
+/static/4c7a8df32275ccc4662f21692f985b19/f058b/img_17.png 630w,
+/static/4c7a8df32275ccc4662f21692f985b19/0012b/img_17.png 661w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;필자는 VM ID와 IP를 일치시켰다.&lt;/p&gt;
+&lt;p&gt;이제 VM을 시작하면 된다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/bcea71b23c5f023a73ade44a3710f4c2/cd138/img_18.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 71.51898734177216%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAOCAYAAAAvxDzwAAAACXBIWXMAAAsTAAALEwEAmpwYAAABy0lEQVR42n1Ux27CUBA0vfdmA6EYUyMThMCGBKQUcuGYY875/1+YMCsWGQVyGO3us3febLGN1csrVvsPuEsPi8UC87mLlf+G/fsXtvsjZrNHjMdjTCYTgeu6WC6X2Gw2Yj3Pu8SHwwHG5PMbzvEHrac9HLsHZzjEwO6i322j33/A8BSPRiOxjuMIBoMBer0ebNs+vdMXMO50OjB2z8/w1ytYpolyuYxmswnz5JumhUajgUa9jkqlgkKhgGQyiVQqhUQigVAodBOG72/g+76QlEolWJaFWq2G+omIhPR5TuTzecRiMRiGcR+snX1gMpW0Wi2xJOQlJGSsyGQyCIfD/xBut9jtdmi32ygWi0JMNdVq9QLGbAct32HpkUhE1EajUQF9Ub9ee1IyJ8iXScBkVUlfQUImU8ndHnJq0+lUeqdDkWGcUT8PhZaEVMeS/xBpySSkOhIyUYdCMu0hL9LhZLPZS5mKq55yv24R0nJASshnSnavXFGqhExmIlXpIHT/2Fs+49pwD+PxuEAHEcQVYS6Xk2RaRTqdllWhT4WM2Ucmc8FJTMsz2itCqmLzqTC4h7rouuC8gEpvwdBvlT8AQv3gWTDWn0QQek77C8vmXwSHD+pfAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 시작 화면 1&quot;
+        title=&quot;&quot;
+        src=&quot;/static/bcea71b23c5f023a73ade44a3710f4c2/f058b/img_18.png&quot;
+        srcset=&quot;/static/bcea71b23c5f023a73ade44a3710f4c2/c26ae/img_18.png 158w,
+/static/bcea71b23c5f023a73ade44a3710f4c2/6bdcf/img_18.png 315w,
+/static/bcea71b23c5f023a73ade44a3710f4c2/f058b/img_18.png 630w,
+/static/bcea71b23c5f023a73ade44a3710f4c2/40601/img_18.png 945w,
+/static/bcea71b23c5f023a73ade44a3710f4c2/cd138/img_18.png 1220w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/e67147855f4e635d722e795c5b1a474d/fe8a7/img_19.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 71.51898734177216%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAOCAYAAAAvxDzwAAAACXBIWXMAAAsTAAALEwEAmpwYAAABI0lEQVR42s2SXUuDYBTHH0XHRLxSKU3mu6gDN81MHWPSoIsIFrvqvqu+/wf457EajKJo7qKLH8/7j/Occ9j2cY/7p2dUqw2WiwxZluGm2WJ9t0ezfkCapkiS5ACdl2WJuq6R5zmqqkJRFGjbFl3XgS13L5jvXuHkG/iuDT8I4PbjzDJgz67g+16Pf8DzPDiOA9u2+3vuMP9cW5YFtmoalPkCxuUFptMpJhMRgiCA4/gBxtgRHMd9C52JogjWNO0QtqbpPz74DXpLgTDKRVleQ1XVYZPn+XFCSiZhmuZ5IqTv3vaEYXhydEfCoK8qtYb+kUOe48cL4ziGrp+pKCSkhv3/Qk3TvjTxXxmEVF3KoWEYkCQJsiyfjKIo78IoigbpWMjzBhpbSQp3Vc0UAAAAAElFTkSuQmCC&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;VM 시작 화면 2&quot;
+        title=&quot;&quot;
+        src=&quot;/static/e67147855f4e635d722e795c5b1a474d/f058b/img_19.png&quot;
+        srcset=&quot;/static/e67147855f4e635d722e795c5b1a474d/c26ae/img_19.png 158w,
+/static/e67147855f4e635d722e795c5b1a474d/6bdcf/img_19.png 315w,
+/static/e67147855f4e635d722e795c5b1a474d/f058b/img_19.png 630w,
+/static/e67147855f4e635d722e795c5b1a474d/40601/img_19.png 945w,
+/static/e67147855f4e635d722e795c5b1a474d/fe8a7/img_19.png 1223w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Tailsacle Subnet & Exit Node with Ubuntu-24.04]]></title><description><![CDATA[Ubuntu에서 Tailscale Subnet과 Exit Node를 설정하는 방법을 알아보자. Tailscale 설치 시스템 업데이트 Tailscale 설치 다운로드 확인 화면에 표시된 URL…]]></description><link>https://blog.ggos3.xyz/Tailscale-Subnet&amp;Exit-Node-with-Ubuntu-24.04/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Tailscale-Subnet&amp;Exit-Node-with-Ubuntu-24.04/</guid><pubDate>Fri, 23 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Ubuntu에서 Tailscale Subnet과 Exit Node를 설정하는 방법을 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;tailscale-설치&quot; style=&quot;position:relative;&quot;&gt;Tailscale 설치&lt;a href=&quot;#tailscale-%EC%84%A4%EC%B9%98&quot; aria-label=&quot;tailscale 설치 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id=&quot;시스템-업데이트&quot; style=&quot;position:relative;&quot;&gt;시스템 업데이트&lt;a href=&quot;#%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8&quot; aria-label=&quot;시스템 업데이트 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo apt update &amp;amp;&amp;amp; sudo apt upgrade -y&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;tailscale-설치-1&quot; style=&quot;position:relative;&quot;&gt;Tailscale 설치&lt;a href=&quot;#tailscale-%EC%84%A4%EC%B9%98-1&quot; aria-label=&quot;tailscale 설치 1 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;curl -fsSL https://tailscale.com/install.sh | sh&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;다운로드-확인&quot; style=&quot;position:relative;&quot;&gt;다운로드 확인&lt;a href=&quot;#%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;다운로드 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo tailscale up&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;화면에 표시된 URL을 클릭하여 인증을 완료하자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;To authenticate, visit:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;        https://login.tailscale.com/a/8ed58fa01260b&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;로그인에 성공하면 아래와 같은 메시지가 출력된다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;&quot; data-index=&quot;4&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Success.&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Some peers are advertising routes but --accept-routes is false&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&quot;tailscale-설정&quot; style=&quot;position:relative;&quot;&gt;Tailscale 설정&lt;a href=&quot;#tailscale-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;tailscale 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id=&quot;이름-변경&quot; style=&quot;position:relative;&quot;&gt;이름 변경&lt;a href=&quot;#%EC%9D%B4%EB%A6%84-%EB%B3%80%EA%B2%BD&quot; aria-label=&quot;이름 변경 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;기본 이름은 &lt;code&gt;tailscale&lt;/code&gt;로 설정된다. 이를 변경하려면 &lt;a href=&quot;https://login.tailscale.com/admin/machines&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;Tailscale 관리 페이지&lt;/a&gt;로 이동하자.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;변경하고자 하는 MACHINE을 선택한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;...&lt;/code&gt;를 클릭한 후, &lt;code&gt;Edit machine name...&lt;/code&gt;을 선택한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Auto-generate from OS hostname&lt;/code&gt; 체크를 해제한 후, 원하는 이름으로 수정한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Update name&lt;/code&gt; 버튼을 눌러 이름을 변경한다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;필자는 &lt;code&gt;ser8-tailscale&lt;/code&gt;이라는 이름을 사용하였다.&lt;/p&gt;
+&lt;h3 id=&quot;키-만료-해제&quot; style=&quot;position:relative;&quot;&gt;키 만료 해제&lt;a href=&quot;#%ED%82%A4-%EB%A7%8C%EB%A3%8C-%ED%95%B4%EC%A0%9C&quot; aria-label=&quot;키 만료 해제 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;키 만료를 해제하려면, 동일한 관리 페이지에서 아래 단계를 따라 진행하자.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;다시 &lt;code&gt;...&lt;/code&gt;를 클릭한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Disable key expiry&lt;/code&gt;를 선택한다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 194px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/dfde255749b5cd7a96ed005833015958/2bf95/img.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 50.632911392405056%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABpklEQVR42n2SX28SQRTF+QK+C8uyuzOwuyx/umvV1qR0SaH64IPRxgokxmisxhia1j40FEUkwQexL/TBj/tzZtQmCOXhZO7cmzn3nHsn4xQKaHgFB1fDccw9l72NbdsmtvOWgm1qBZXTeR2vQsYQOuqR9JBCEAYB5TCk3W4Tb9SJgoit+9vcu5MgpaReq7GZ1K8b/4+Mo1VIwa1WwvbODvP5L759Pmf6fUy30+XifMLlZMb88ifDwQU/ZjOurqakD7bIZrNLxJl/QegHVCsVatUKYRiY0y+WqEQRmxsxkVJdr9aM+tD3EZ5r7C8p1Enhuhy86PH6ZYdut8PzZ0958/Y9Z2enfPzwjuOjIw4PDnnV6xGo0eRy1kq7CwqFJygq6yWlyi8Vicpl4jghiWOk6yBVXavUzfXM1xLa+TzNNKXd2mOv2WRXzbLRaNBqpqS7DR7u76tai7tqMXrbN5EtEGqrg8GQ6XjEp5NT+v0+X4dDJur+RZ3j0Ygnjx9hWdaNG16wLIWnLBcVpLJcMvaF+POVhOeZuo7XqbsmXPqgq3J/4akZrsNvUm81c3JZejQAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Image 1&quot;
+        title=&quot;&quot;
+        src=&quot;/static/dfde255749b5cd7a96ed005833015958/2bf95/img.png&quot;
+        srcset=&quot;/static/dfde255749b5cd7a96ed005833015958/c26ae/img.png 158w,
+/static/dfde255749b5cd7a96ed005833015958/2bf95/img.png 194w&quot;
+        sizes=&quot;(max-width: 194px) 100vw, 194px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;위 사진처럼 Node에 &lt;code&gt;Expiry disabled&lt;/code&gt; 항목이 추가된 것을 확인할 수 있다.&lt;/p&gt;
+&lt;h2 id=&quot;subnet-설정&quot; style=&quot;position:relative;&quot;&gt;Subnet 설정&lt;a href=&quot;#subnet-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;subnet 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;이제 기본 설정이 완료된 머신에 Subnet 설정을 적용해보자.&lt;/p&gt;
+&lt;h3 id=&quot;enable-ip-forwarding&quot; style=&quot;position:relative;&quot;&gt;Enable IP Forwarding&lt;a href=&quot;#enable-ip-forwarding&quot; aria-label=&quot;enable ip forwarding permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;먼저 해당 머신을 통해 트래픽을 전송하려면 IP Forward 설정이 필요하다.&lt;/p&gt;
+&lt;h4 id=&quot;ipv4-설정&quot; style=&quot;position:relative;&quot;&gt;IPv4 설정&lt;a href=&quot;#ipv4-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;ipv4 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;5&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk8&quot;&gt;echo&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;#39;net.ipv4.ip_forward = 1&amp;#39;&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; | sudo tee -a /etc/sysctl.d/99-tailscale.conf&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&quot;ipv6-설정&quot; style=&quot;position:relative;&quot;&gt;IPv6 설정&lt;a href=&quot;#ipv6-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;ipv6 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;6&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk8&quot;&gt;echo&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;#39;net.ipv6.conf.all.forwarding = 1&amp;#39;&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; | sudo tee -a /etc/sysctl.d/99-tailscale.conf&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;만약 방화벽을 사용 중이라면, 아래 명령어도 실행하자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;7&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;firewall-cmd --permanent --add-masquerade&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;설정-적용&quot; style=&quot;position:relative;&quot;&gt;설정 적용&lt;a href=&quot;#%EC%84%A4%EC%A0%95-%EC%A0%81%EC%9A%A9&quot; aria-label=&quot;설정 적용 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;8&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo sysctl -p /etc/sysctl.d/99-tailscale.conf&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;subnet-설정-1&quot; style=&quot;position:relative;&quot;&gt;Subnet 설정&lt;a href=&quot;#subnet-%EC%84%A4%EC%A0%95-1&quot; aria-label=&quot;subnet 설정 1 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;공유하고 싶은 대역을 설정하려면 아래 명령어를 사용한다. 예시에서는 &lt;code&gt;192.168.100.0/24&lt;/code&gt; 대역을 공유한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;9&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo tailscale up --advertise-routes=192.168.100.0/24&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;
+&lt;p&gt;여러 대역을 공유할 경우 아래와 같이 설정할 수 있다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;10&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo tailscale up --advertise-routes=192.168.100.0/24,198.51.100.0/24&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;명령어 실행 시 아래와 같은 메시지가 표시된다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;11&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Warning: UDP GRO forwarding is suboptimally configured on eth0, UDP forwarding throughput capability will increase with a configuration change.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;See https://tailscale.com/s/ethtool-config-udp-gro&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Some peers are advertising routes but --accept-routes is &lt;/span&gt;&lt;span class=&quot;mtk8&quot;&gt;false&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;admin-console-확인&quot; style=&quot;position:relative;&quot;&gt;Admin Console 확인&lt;a href=&quot;#admin-console-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;admin console 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Tailscale Admin Console로 돌아가서, 설정한 머신에 &lt;code&gt;Subnets&lt;/code&gt;라는 항목이 생긴 것을 확인할 수 있다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 218px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 43.67088607594937%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB50lEQVR42nWSXU8TURCG9z9oavd722Iw7W7bLVUDiYn9SrSVlO0HjVAKFCypXarciIZIqiGSeCF6Z/wrXho1/qrHcxZRY/DizcyZM/OemfeMYlsWjmVHsEwT0zTQNQ3TMMXZwND1KG7LO8Mgyrft/0KRCeb1FIlUipzn4efz1KpVCvmc8ItUymX8rEsm47K0eIv0jfnoMVl3GRRHXF5ZckkWfE5mJ7w6PmR/GrLebfPyxRtOX59y/PwZ0/0DPn46Y627QjwWI+E4lxNapkUmnaHo+/i5LJ7nsiB82e1CoUAxL+M53HQamevYksj+B38RGqLDu6UqG+tr9LodOkHAo51dwvEe49GIXrPFZn+DWumO6Oyq0FoXel5AwzI0QfRHAuXckYLr6LoWfYItxJ0TmjqOjarGRUwU2Umhs4eVyGA5bmSdpEtiLivyUr9JFfmjpXKF6WRM+DhkZ2vA7nCbcDIhDCccTJ8wHPRYrAwZHP1gb/aV7aMvjGbfWX36mf7hN7zbXUwtFsmhyFWQWgXNJt12h+UHDRr1+7SCFu1WQGsloHGvQvZmndrD9yxvnlHvvxP2A9XVt1FsPlvB0uPRZOcjix2TnWqqGllD09E0VZx/xaQMliG6iKOrEtcia+gqpiQS417s4U/yYSJEodDJkQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Description of image&quot;
+        title=&quot;&quot;
+        src=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png&quot;
+        srcset=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/c26ae/img_1.png 158w,
+/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png 218w&quot;
+        sizes=&quot;(max-width: 218px) 100vw, 218px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;하지만 아직 Subnet이 활성화되지 않았다.&lt;/p&gt;
+&lt;h3 id=&quot;route-settings-변경&quot; style=&quot;position:relative;&quot;&gt;Route Settings 변경&lt;a href=&quot;#route-settings-%EB%B3%80%EA%B2%BD&quot; aria-label=&quot;route settings 변경 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Subnet 설정을 완료하려면 아래 단계를 따라 진행하자.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;설정할 머신을 선택한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;...&lt;/code&gt;를 클릭한 후, &lt;code&gt;Edit route settings...&lt;/code&gt;를 선택한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;192.168.100.0/24&lt;/code&gt; 대역을 체크하고, &lt;code&gt;Save&lt;/code&gt; 버튼을 눌러 설정을 완료한다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 218px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 43.67088607594937%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB50lEQVR42nWSXU8TURCG9z9oavd722Iw7W7bLVUDiYn9SrSVlO0HjVAKFCypXarciIZIqiGSeCF6Z/wrXho1/qrHcxZRY/DizcyZM/OemfeMYlsWjmVHsEwT0zTQNQ3TMMXZwND1KG7LO8Mgyrft/0KRCeb1FIlUipzn4efz1KpVCvmc8ItUymX8rEsm47K0eIv0jfnoMVl3GRRHXF5ZckkWfE5mJ7w6PmR/GrLebfPyxRtOX59y/PwZ0/0DPn46Y627QjwWI+E4lxNapkUmnaHo+/i5LJ7nsiB82e1CoUAxL+M53HQamevYksj+B38RGqLDu6UqG+tr9LodOkHAo51dwvEe49GIXrPFZn+DWumO6Oyq0FoXel5AwzI0QfRHAuXckYLr6LoWfYItxJ0TmjqOjarGRUwU2Umhs4eVyGA5bmSdpEtiLivyUr9JFfmjpXKF6WRM+DhkZ2vA7nCbcDIhDCccTJ8wHPRYrAwZHP1gb/aV7aMvjGbfWX36mf7hN7zbXUwtFsmhyFWQWgXNJt12h+UHDRr1+7SCFu1WQGsloHGvQvZmndrD9yxvnlHvvxP2A9XVt1FsPlvB0uPRZOcjix2TnWqqGllD09E0VZx/xaQMliG6iKOrEtcia+gqpiQS417s4U/yYSJEodDJkQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Image 2&quot;
+        title=&quot;&quot;
+        src=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png&quot;
+        srcset=&quot;/static/2ab55e07e74678477e2f0735fd74ea59/c26ae/img_1.png 158w,
+/static/2ab55e07e74678477e2f0735fd74ea59/5c416/img_1.png 218w&quot;
+        sizes=&quot;(max-width: 218px) 100vw, 218px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;이후 아래 사진과 같이 &lt;code&gt;Subnets&lt;/code&gt; 항목의 경고가 사라진다.&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 506px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/2779d295a465351b37b69746a18a0c63/29f4e/img_2.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 98.73417721518987%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAACpElEQVR42p1U2XbaMBD1Z4TFsuUFLyxJMGAwtlkCBELTE5ImfWr//y9uZ+SIQpqcNn24Z6SRzujOzB0Z0rbR8n14rgPXkQQHvueB/Z7rnoPO2G8J8Qdsy1LWuOz18PT4iLvdlrDDl/0dvr+84Ov9PTbrNe332N/t8HQ44PHwgEGSoFGvHwNoxFEER0oY/CIzOoVmymd8SVv3Xxh22m0cHh4Um+3trbJ80Gw0YDabR/Be49Svzl6tChi0WijyKYrpFOlwiDLPkWcZxmmKdDTCmDCdjDErcrqTYTEraT9RZ9mY/GWBxXyGjHzMXjGclSXWqxVyClYWhVqz3axuMEozdPoz9Po5eskM7d5Qpe4QdLNcApeK0zakJRDYJiLXRiAFWtJUNrBFtVfWImsp69Pet0wFTzR/r60mJKcshYlRILAbOJhf2rhNHOyHLra0X19J3FzZ2PSlOt8lEkO6G5hNRNY5YoJLgQ2O6tIFUavBqtcgXmE36upCBUEMyApmIj4EZ2tw3lzHm+VSYTGfY0W1619fq46+1dvfYOh2x1GIdhyj2+mg1+2Cuy9M81PBVEAeu6R/rQLxunZxgTqlz+w4oNba6foUbx81up02dtstCXqldOVI6rZPE0Oz7ZMc+BFmqxEGgfJVfp/k4lLQk4BRGGK72ZDuckzGGYpiifmCgmcliXtCvhRTEjoLlwU9I32y2HkAeBi41rpsx5RZ9ZN0hCi+hBcm8IIr+NEA0gko9TqhGi9G453xO0uZu1h9VR6lSmn4LuKwRelKsqGaCj38H8ESGhRQX9a/im3ZlVXr9yVTMWOW3BATollX4LXxWVnov49VEYcBlYUaFE/gx2Mi4X0+IMuEP47nb89YLedw/B4G5U8kxQ84Xvf/GJ7Vz7IVMwbX8RcIIkSsu61YswAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;Image 3&quot;
+        title=&quot;&quot;
+        src=&quot;/static/2779d295a465351b37b69746a18a0c63/29f4e/img_2.png&quot;
+        srcset=&quot;/static/2779d295a465351b37b69746a18a0c63/c26ae/img_2.png 158w,
+/static/2779d295a465351b37b69746a18a0c63/6bdcf/img_2.png 315w,
+/static/2779d295a465351b37b69746a18a0c63/29f4e/img_2.png 506w&quot;
+        sizes=&quot;(max-width: 506px) 100vw, 506px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;h2 id=&quot;exit-node-설정&quot; style=&quot;position:relative;&quot;&gt;Exit Node 설정&lt;a href=&quot;#exit-node-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;exit node 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;이제 Exit Node를 설정해보자.&lt;/p&gt;
+&lt;h3 id=&quot;설정-적용-1&quot; style=&quot;position:relative;&quot;&gt;설정 적용&lt;a href=&quot;#%EC%84%A4%EC%A0%95-%EC%A0%81%EC%9A%A9-1&quot; aria-label=&quot;설정 적용 1 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;12&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo tailscale up --advertise-exit-node&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;admin-console-확인-1&quot; style=&quot;position:relative;&quot;&gt;Admin Console 확인&lt;a href=&quot;#admin-console-%ED%99%95%EC%9D%B8-1&quot; aria-label=&quot;admin console 확인 1 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Exit Node 설정이 제대로 적용되었는지 확인하려면 Admin Console로 이동하자. 앞서 Subnet 설정 시와 동일한 절차로 설정이 적용되었는지 확인한다. Exit Node가 제대로 설정되었으면, Admin Console에서 이를 확인할 수 있다.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;위와 같이 설정하면 Ubuntu에서 Tailscale Subnet과 Exit Node 설정이 완료된다. 이제 안전하게 네트워크를 공유하고, 원하는 머신을 Exit Node로 사용할 수 있다.&lt;/p&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk8 { color: #56B6C2; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Proxmox Pve 유저 추가]]></title><description><![CDATA[Proxmox VE에 유저를 추가하는 방법을 알아보자. Proxmox Pve 유저 추가 시스템 유저 추가 먼저, 새로운 유저를 추가하자. 예를 들어, ggos…]]></description><link>https://blog.ggos3.xyz/Proxmox-Pve-유저-추가/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Proxmox-Pve-유저-추가/</guid><pubDate>Thu, 22 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Proxmox VE에 유저를 추가하는 방법을 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;proxmox-pve-유저-추가&quot; style=&quot;position:relative;&quot;&gt;Proxmox Pve 유저 추가&lt;a href=&quot;#proxmox-pve-%EC%9C%A0%EC%A0%80-%EC%B6%94%EA%B0%80&quot; aria-label=&quot;proxmox pve 유저 추가 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id=&quot;시스템-유저-추가&quot; style=&quot;position:relative;&quot;&gt;시스템 유저 추가&lt;a href=&quot;#%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%9C%A0%EC%A0%80-%EC%B6%94%EA%B0%80&quot; aria-label=&quot;시스템 유저 추가 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;먼저, 새로운 유저를 추가하자.&lt;/p&gt;
+&lt;p&gt;예를 들어, ggos3이라는 유저를 추가하려면 다음 명령어를 입력하면 된다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;pveum user add ggos3@pve -comment &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;ggos3&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;유저-비밀번호-설정&quot; style=&quot;position:relative;&quot;&gt;유저 비밀번호 설정&lt;a href=&quot;#%EC%9C%A0%EC%A0%80-%EB%B9%84%EB%B0%80%EB%B2%88%ED%98%B8-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;유저 비밀번호 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;유저를 추가한 후에는 비밀번호를 설정해야 한다.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ggos3&lt;/code&gt; 유저의 비밀번호를 설정하려면 다음 명령어를 입력하면 된다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;pveum passwd ggos3@pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;그룹-추가&quot; style=&quot;position:relative;&quot;&gt;그룹 추가&lt;a href=&quot;#%EA%B7%B8%EB%A3%B9-%EC%B6%94%EA%B0%80&quot; aria-label=&quot;그룹 추가 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;유저를 그룹에 추가하기 전에, 필요한 그룹을 생성해야 한다.&lt;/p&gt;
+&lt;p&gt;예를 들어, &lt;code&gt;admin&lt;/code&gt;이라는 그룹을 생성하려면 다음 명령어를 입력하면 된다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;pveum group add admin -comment &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;System Administrators&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;그룹-권한-설정&quot; style=&quot;position:relative;&quot;&gt;그룹 권한 설정&lt;a href=&quot;#%EA%B7%B8%EB%A3%B9-%EA%B6%8C%ED%95%9C-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;그룹 권한 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;생성한 그룹에 필요한 권한을 부여하자.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;admin&lt;/code&gt; 그룹에 &lt;code&gt;Administrator&lt;/code&gt; 역할을 부여하려면 다음 명령어를 입력하면 된다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;pveum acl modify / -group admin -role Administrator&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;유저-그룹-설정&quot; style=&quot;position:relative;&quot;&gt;유저 그룹 설정&lt;a href=&quot;#%EC%9C%A0%EC%A0%80-%EA%B7%B8%EB%A3%B9-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;유저 그룹 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;마지막으로, &lt;code&gt;ggos3&lt;/code&gt; 유저를 &lt;code&gt;admin&lt;/code&gt; 그룹에 추가하자. 이를 위해 다음 명령어를 입력하면 된다:&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;4&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;pveum user modify ggos3@pve -group admin&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Traefik과 GoAccess를 Docker Compose로 구성하기]]></title><description><![CDATA[docker compose환경에서 traefik의 access.log파일을 goaccess로 처리 하여 실시간 웹 로그 분석 대시보드를 구성 해보자 디렉터리 구성 먼저, 프로젝트의 디렉터리 구조를 다음과 같이 구성한다. docker-compose…]]></description><link>https://blog.ggos3.xyz/Traefik과-GoAccess를-Docker-Compose로-구성하기/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Traefik과-GoAccess를-Docker-Compose로-구성하기/</guid><pubDate>Tue, 20 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;&lt;code&gt;docker compose&lt;/code&gt;환경에서 &lt;code&gt;traefik&lt;/code&gt;의 &lt;code&gt;access.log&lt;/code&gt;파일을 &lt;code&gt;goaccess&lt;/code&gt;로 처리 하여 실시간 웹 로그 분석 대시보드를 구성 해보자&lt;/p&gt;
+&lt;h2 id=&quot;디렉터리-구성&quot; style=&quot;position:relative;&quot;&gt;디렉터리 구성&lt;a href=&quot;#%EB%94%94%EB%A0%89%ED%84%B0%EB%A6%AC-%EA%B5%AC%EC%84%B1&quot; aria-label=&quot;디렉터리 구성 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;먼저, 프로젝트의 디렉터리 구조를 다음과 같이 구성한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk8&quot;&gt;.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;├── docker-compose.yml&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;├── logs&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;│   └── access.log&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;└── traefik.yml&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;docker-compose.yml&lt;/code&gt;: docker compose 설정 파일로, Traefik과 GoAccess 컨테이너를 정의한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;logs/access.log&lt;/code&gt;: Traefik의 액세스 로그가 저장될 디렉터리이다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;traefik.yml&lt;/code&gt; Traefik의 설정 파일로, 로그 파일 경로 및 기타 설정을 포함 한다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;docker-composeyml&quot; style=&quot;position:relative;&quot;&gt;docker-compose.yml&lt;a href=&quot;#docker-composeyml&quot; aria-label=&quot;docker composeyml permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker-compose.yml&lt;/code&gt; 파일을 다음과 같이 구성한다.&lt;/p&gt;
+&lt;p&gt;이 파일은 Traefik과 GoAccess 두 개의 서비스로 이루어져 있다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;yml&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk4&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;traefik&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;traefik&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;container_name&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;traefik&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;restart&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;unless-stopped&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;traefik.enable=true&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;traefik.http.routers.traefik.rule=Host(`traefik.example.com`) &amp;amp;&amp;amp; PathPrefix(`/api`) || Host(`traefik.example.com`) &amp;amp;&amp;amp; PathPrefix(`/dashboard`)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;traefik.http.routers.traefik.service=api@internal&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;443:443&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;80:80&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;volumes&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;/var/run/docker.sock:/var/run/docker.sock:ro&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;./traefik.yml:/etc/traefik/traefik.yml&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;./logs:/logs&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;goaccess&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;#39;xavierh/goaccess-for-nginxproxymanager:latest&amp;#39;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;container_name&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;goaccess&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;restart&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;always&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;7880:7880&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;environment&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;TZ=Asia/Seoul&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;LOG_TYPE=TRAEFIK&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;EXCLUDE_IPS=127.0.0.1&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mtk5 mtki&quot;&gt;# optional&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;volumes&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;      - &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;./logs:/opt/log&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;설정-설명&quot; style=&quot;position:relative;&quot;&gt;설정 설명&lt;a href=&quot;#%EC%84%A4%EC%A0%95-%EC%84%A4%EB%AA%85&quot; aria-label=&quot;설정 설명 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;h4 id=&quot;traefik&quot; style=&quot;position:relative;&quot;&gt;Traefik&lt;a href=&quot;#traefik&quot; aria-label=&quot;traefik permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;traefik&lt;/code&gt; 이미지를 사용하여 컨테이너를 생성한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;labels&lt;/code&gt;에 &lt;code&gt;example.com&lt;/code&gt;으로 되어있는 도메인을 자신의 도메인으로 변경 해 주어야 한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;access.log&lt;/code&gt;를 &lt;code&gt;logs&lt;/code&gt; 디렉터리에 저장하며, &lt;code&gt;traefik.yml&lt;/code&gt;파일로 세부 설정을 제공한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;443&lt;/code&gt; 과 &lt;code&gt;80&lt;/code&gt; 포트를 노출하여 HTTPS와 HTTP 트래픽을 처리한다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&quot;goaccess&quot; style=&quot;position:relative;&quot;&gt;GoAccess&lt;a href=&quot;#goaccess&quot; aria-label=&quot;goaccess permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;goaccess&lt;/code&gt;는Traefik의 로그를 실시간으로 분석하여 대시보드를 제공하는 역할을 한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;7880&lt;/code&gt; 포트를 통해 웹 브라우저에서 접근 가능한 대시보드를 제공한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;logs&lt;/code&gt; 디렉터리의 로그 파일을 읽어와 분석한다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;goaccess-env&quot; style=&quot;position:relative;&quot;&gt;GoAccess ENV&lt;a href=&quot;#goaccess-env&quot; aria-label=&quot;goaccess env permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;GoAccess 컨테이너의 환경 변수 설정은 다음과 같다&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;TZ&lt;/code&gt;: 타임존을 설정한다. 여기서는 &lt;code&gt;Asia/Seoul&lt;/code&gt;로 설정하였다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;LOG_TYPE&lt;/code&gt;: 로그 파일의 타입을 지정한다. &lt;code&gt;TRAEFIK&lt;/code&gt;을 사용하여 Traefik 로그 형식을 처리한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EXCLUDE_IPS&lt;/code&gt;: 로그에서 제외할 IP를 설정한다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;192.168.0.1-192.168.0.249&lt;/code&gt;와 같이 특정 대역을 제외시킬 수 있다.&lt;/p&gt;
+&lt;p&gt;예시) &lt;code&gt;EXCLUDE_IPS=127.0.0.1,192.168.0.1-192.168.0.249&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;traefikyml&quot; style=&quot;position:relative;&quot;&gt;traefik.yml&lt;a href=&quot;#traefikyml&quot; aria-label=&quot;traefikyml permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Traefik의 설정 파일인 &lt;code&gt;traefik.yml&lt;/code&gt;에서는 다음과 같이 &lt;code&gt;access.log&lt;/code&gt; 파일 경로를 지정한다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;yml&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk4&quot;&gt;accessLog&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;filePath&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;/logs/access.log&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;이 설정은 Traefik이 생성하는 모든 액세스 로그를 &lt;code&gt;/logs/access.log&lt;/code&gt; 경로에 저장하도록 한다.&lt;/p&gt;
+&lt;p&gt;이 로그 파일은 GoAccess에서 실시간으로 분석하게 된다.&lt;/p&gt;
+&lt;h2 id=&quot;실행&quot; style=&quot;position:relative;&quot;&gt;실행&lt;a href=&quot;#%EC%8B%A4%ED%96%89&quot; aria-label=&quot;실행 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;모든 설정이 완료 되었다면 다음과 같은 명령어를 통해 서비스들을 시작할 수 있다.&lt;/p&gt;
+&lt;h3 id=&quot;docker-compose-up&quot; style=&quot;position:relative;&quot;&gt;docker compose up&lt;a href=&quot;#docker-compose-up&quot; aria-label=&quot;docker compose up permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;docker compose up -d&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;대시보드-접근&quot; style=&quot;position:relative;&quot;&gt;대시보드 접근&lt;a href=&quot;#%EB%8C%80%EC%8B%9C%EB%B3%B4%EB%93%9C-%EC%A0%91%EA%B7%BC&quot; aria-label=&quot;대시보드 접근 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://localhost:7880&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;http://localhost:7880&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;위 URL로 접근 시 대시보드로 접근할 수 있다.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtki { font-style: italic; }
+  .one-dark-pro .mtk8 { color: #56B6C2; }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk4 { color: #E06C75; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .mtk5 { color: #7F848E; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Proxmox Kernel 버전 변경 (업그레이드 / 다운그레이드)]]></title><description><![CDATA[Proxmox VE에서 사용하는 Kernel 버전을 변경하는 방법을 알아보자. Proxmox Kernel 버전 확인 먼저, Proxmox VE에서 현재 사용 중인 Kernel 버전을 확인해보자. 명령어는 Proxmox VE Shell…]]></description><link>https://blog.ggos3.xyz/Proxmox-Kernel-버전-변경/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Proxmox-Kernel-버전-변경/</guid><pubDate>Sun, 11 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Proxmox VE에서 사용하는 Kernel 버전을 변경하는 방법을 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;proxmox-kernel-버전-확인&quot; style=&quot;position:relative;&quot;&gt;Proxmox Kernel 버전 확인&lt;a href=&quot;#proxmox-kernel-%EB%B2%84%EC%A0%84-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;proxmox kernel 버전 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;먼저, &lt;code&gt;Proxmox VE&lt;/code&gt;에서 현재 사용 중인 &lt;code&gt;Kernel&lt;/code&gt; 버전을 확인해보자.&lt;/p&gt;
+&lt;p&gt;명령어는 &lt;code&gt;Proxmox VE&lt;/code&gt; Shell에서 실행하면 된다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel list&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;kernel-버전-확인-결과-단일&quot; style=&quot;position:relative;&quot;&gt;Kernel 버전 확인 결과 (단일)&lt;a href=&quot;#kernel-%EB%B2%84%EC%A0%84-%ED%99%95%EC%9D%B8-%EA%B2%B0%EA%B3%BC-%EB%8B%A8%EC%9D%BC&quot; aria-label=&quot;kernel 버전 확인 결과 단일 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;아래와 같이, 현재 사용 중인 &lt;code&gt;Kernel&lt;/code&gt; 버전을 확인할 수 있다.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Automatically selected kernels&lt;/code&gt;에 있는&lt;code&gt;Kernel&lt;/code&gt;이 현재 사용 중인 &lt;code&gt;Kernel&lt;/code&gt;이다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Manually selected kernels:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;None.&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Automatically selected kernels:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;6.8.4-2-pve&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;kernel-버전-확인-결과-복수&quot; style=&quot;position:relative;&quot;&gt;Kernel 버전 확인 결과 (복수)&lt;a href=&quot;#kernel-%EB%B2%84%EC%A0%84-%ED%99%95%EC%9D%B8-%EA%B2%B0%EA%B3%BC-%EB%B3%B5%EC%88%98&quot; aria-label=&quot;kernel 버전 확인 결과 복수 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;만약 &lt;code&gt;Kernel&lt;/code&gt;이 여러 개 설치 되어 있다면, &lt;code&gt;Automatically selected kernels&lt;/code&gt; 항목 아래에 설치된 &lt;code&gt;Kerner&lt;/code&gt;들이 나열 된다.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Pinned Kernel&lt;/code&gt;에 있는 &lt;code&gt;Kernel&lt;/code&gt;이 현재 &lt;code&gt;Proxmox VE&lt;/code&gt;에서 사용 중인 &lt;code&gt;Kernel&lt;/code&gt;이다.&lt;/p&gt;
+&lt;p&gt;예를 들어, 현재 &lt;code&gt;6.5.13-5-pve&lt;/code&gt;를 사용 중인 경우는 아래와 같다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Manually selected kernels:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;None.&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Automatically selected kernels:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;6.8.12-1-pve&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;6.8.4-2-pve&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;Pinned kernel:&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&quot;proxmox-kernel-버전-변경&quot; style=&quot;position:relative;&quot;&gt;Proxmox Kernel 버전 변경&lt;a href=&quot;#proxmox-kernel-%EB%B2%84%EC%A0%84-%EB%B3%80%EA%B2%BD&quot; aria-label=&quot;proxmox kernel 버전 변경 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id=&quot;변경할-kernel-버전-확인&quot; style=&quot;position:relative;&quot;&gt;변경할 Kernel 버전 확인&lt;a href=&quot;#%EB%B3%80%EA%B2%BD%ED%95%A0-kernel-%EB%B2%84%EC%A0%84-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;변경할 kernel 버전 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;우선, 설치 가능한 Proxmox Kernel 버전을 확인해보자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;apt search proxmox-kernel&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;아래와 같이 설치 할 수 있는 &lt;code&gt;Proxmox Kernel&lt;/code&gt;들이 나열된다&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;4&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-6.2/stable 6.2.16-20 all&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Latest Proxmox Kernel Image&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-6.2.16-10-pve/stable 6.2.16-10 amd64&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Proxmox Kernel Image&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;...&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-helper/stable,now 8.1.0 all [installed]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Function &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; various kernel maintenance tasks.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-libc-dev/stable 6.5.11-8 amd64&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Linux support headers &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; userspace development&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;만약 위와 같이 여러 버전의 &lt;code&gt;Proxmox Kernel&lt;/code&gt;이 표시되지 않는다면, &lt;code&gt;PVE Source&lt;/code&gt;가 추가되지 않은 것이다.&lt;/p&gt;
+&lt;p&gt;이 경우, 먼저 &lt;code&gt;PVE Source&lt;/code&gt;를 추가해 주어야 한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;5&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-6.8/now 6.8.4-2 all [installed,local]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Latest Proxmox Kernel Image&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-6.8.4-2-pve-signed/now 6.8.4-2 amd64 [installed,local]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Proxmox Kernel Image (signed)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-kernel-helper/now 8.1.0 all [installed,local]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;  Function &lt;/span&gt;&lt;span class=&quot;mtk9&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; various kernel maintenance tasks.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;PVE Source&lt;/code&gt;설정을 포함해 다른 기타 설정을 스크립트로 간편하게 설정하고 싶다면  아래 글을 참고하자&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://blog.ggos3.xyz/Proxmox-%EC%84%A4%EC%B9%98-%ED%9B%84-%EC%84%A4%EC%A0%95&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;Proxmox-설치-후-설정&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;kernel-설치&quot; style=&quot;position:relative;&quot;&gt;Kernel 설치&lt;a href=&quot;#kernel-%EC%84%A4%EC%B9%98&quot; aria-label=&quot;kernel 설치 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;변경할 Kerner 버전을 확인했다면, 아래 명령어를 실행하여 &lt;code&gt;Kernel&lt;/code&gt;을 설치한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;6&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;apt install proxmox-kernel-6.5.13-5-pve-signed &amp;amp;&amp;amp; &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;apt install proxmox-headers-6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;여기서 &lt;code&gt;pve-signed&lt;/code&gt;는 서명된 &lt;code&gt;Kernel&lt;/code&gt;을 의미하며, 보안과 관련된 추가적인 검증이 이루어진다.&lt;/p&gt;
+&lt;p&gt;설치된 &lt;code&gt;Kernel&lt;/code&gt;은 아래 명령어를 통해 다시 확인할 수 있다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;7&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel list&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;kernel-버전-변경&quot; style=&quot;position:relative;&quot;&gt;Kernel 버전 변경&lt;a href=&quot;#kernel-%EB%B2%84%EC%A0%84-%EB%B3%80%EA%B2%BD&quot; aria-label=&quot;kernel 버전 변경 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;이제, &lt;code&gt;Proxmox VE&lt;/code&gt;에서 사용 중인 &lt;code&gt;Kernel&lt;/code&gt; 버전을 변경해보자. 방법은 간단하다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;8&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel pin 6.5.13-5-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;이후 시스템을 재부팅하여 변경된 &lt;code&gt;Kernel&lt;/code&gt;이 적용되도록 한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;9&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;reboot&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;버전-변경-확인&quot; style=&quot;position:relative;&quot;&gt;버전 변경 확인&lt;a href=&quot;#%EB%B2%84%EC%A0%84-%EB%B3%80%EA%B2%BD-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;버전 변경 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;재부팅 후, &lt;code&gt;Kernel&lt;/code&gt; 버전이 변경되었는지 확인해보자.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;10&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel list&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk9 { color: #C678DD; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Proxmox VE 설치 후 설정]]></title><description><![CDATA[Proxmox VE를 설치한 후, 기본적인 설정을 진행해보자. Proxmox 설치 후 Proxmox VE를 설치하고 나면 꼭 해야 할 설정들이 있다. 필수 설정 Enterprise Repo 비활성화 PVE Source 추가 Test Repo 추가 No…]]></description><link>https://blog.ggos3.xyz/Proxmox-설치-후-설정/</link><guid isPermaLink="false">https://blog.ggos3.xyz/Proxmox-설치-후-설정/</guid><pubDate>Sun, 11 Aug 2024 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Proxmox VE를 설치한 후, 기본적인 설정을 진행해보자.&lt;/p&gt;
+&lt;h2 id=&quot;proxmox-설치-후&quot; style=&quot;position:relative;&quot;&gt;Proxmox 설치 후&lt;a href=&quot;#proxmox-%EC%84%A4%EC%B9%98-%ED%9B%84&quot; aria-label=&quot;proxmox 설치 후 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Proxmox VE를 설치하고 나면 꼭 해야 할 설정들이 있다.&lt;/p&gt;
+&lt;h3 id=&quot;필수-설정&quot; style=&quot;position:relative;&quot;&gt;필수 설정&lt;a href=&quot;#%ED%95%84%EC%88%98-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;필수 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Enterprise Repo&lt;/code&gt; 비활성화&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;PVE Source&lt;/code&gt; 추가&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Test Repo&lt;/code&gt; 추가&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;No-Subscription&lt;/code&gt; 메시지 제거&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Proxmox Update&lt;/code&gt; 확인 및 적용&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;이 작업들은 몇 번은 직접 할 수 있지만, 반복되면 귀찮아진다.&lt;/p&gt;
+&lt;p&gt;다행히, 이 작업들을 간편하게 해결할 수 있는 스크립트가 있다.&lt;/p&gt;
+&lt;h2 id=&quot;tteckproxmox&quot; style=&quot;position:relative;&quot;&gt;tteck/Proxmox&lt;a href=&quot;#tteckproxmox&quot; aria-label=&quot;tteckproxmox permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://tteck.github.io/Proxmox&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;tteck.github.io&lt;/a&gt;에서는 Proxmox를 위한 여러 스크립트를 제공한다. 이 스크립트들은 Proxmox VE Shell에서 사용 가능하다.&lt;/p&gt;
+&lt;p&gt;그 중에서도 &lt;code&gt;Proxmox VE Post Install&lt;/code&gt; 스크립트를 사용하면, 앞서 언급한 필수 설정들을 한 번에 해결할 수 있다.&lt;/p&gt;
+&lt;h3 id=&quot;proxmox-ve-post-install-스크립트-실행&quot; style=&quot;position:relative;&quot;&gt;Proxmox VE Post Install 스크립트 실행&lt;a href=&quot;#proxmox-ve-post-install-%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%8B%A4%ED%96%89&quot; aria-label=&quot;proxmox ve post install 스크립트 실행 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;bash -c &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;위 명령어를 실행하면 Proxmox VE Post Install 스크립트가 실행되어 필요한 설정들을 자동으로 처리해준다.&lt;/p&gt;
+&lt;p&gt;스크립트 내용에는 문제될 것이 없으니, 항목들을 보고 필요한 설정에 ‘y’를 입력하면 된다.&lt;/p&gt;
+&lt;h3 id=&quot;이전-버전-kernal-삭제&quot; style=&quot;position:relative;&quot;&gt;이전 버전 Kernal 삭제&lt;a href=&quot;#%EC%9D%B4%EC%A0%84-%EB%B2%84%EC%A0%84-kernal-%EC%82%AD%EC%A0%9C&quot; aria-label=&quot;이전 버전 kernal 삭제 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;업데이트를 진행하고 난다면 이전 버전의 Kernel이 남아 있을 수 있다.&lt;/p&gt;
+&lt;p&gt;여러 버전의 Kernel이 남아있으면 지저분하니 지워주도록 하자&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;bash -c &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/7e3a2a8f612b72f5e94dbd8e45d5a249/96e86/img.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 52.53164556962025%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAYAAAB/Ca1DAAAACXBIWXMAAAsTAAALEwEAmpwYAAABwUlEQVR42qWSzU8TURTFXwsu+AhucIP+BSa0FekXYF0TFy6M1QrGDYQduFC2rggfS9esiXGL2nYI0CLtdGY6HV4/gDIaaogL/4rjmWnRIdEFsPjlnPty35mbuU8MJAzcTGguA8Q3ql+BEnxhia7hjxAiegoR+e7SFf+GG+OXQ8QcbIixn/DfUyB8URbRYwY2IQL0gZOOkiCbg/ZFAh6cOsL+6BFE/Af8oTQDnS+ET9D38AhP31TwfNFCkuowNa/h5YKOaer0ax0p+uTbisuzxQoeLxjomajzfrMTmOkEjti486iB3E4G6r4Co5Qju9AL2yg7WmyrqeWg0Rf2sqhZKnuzuPXgCwNP4Yu3PIH3bQxNNpBR8sjvFaCWyn8oelA10z0rFA0YpoSSVTA48fkfgZzw9mQdhq6iUStD1kzIDxuQmU+o1k1ULQ3VAx2amoekl5aOw7qFr7k0J9xkYMsbyB8bttGfaCA5+x6pmSWkZlepy2SF3oOnfjG3hiev3qE3wkU4L+U8ULhbbra3HKwS2SYg//r/EWJ/5PjilkXsjO+oRXgwfnZpnHsixgnHfvEd7kD4Q1tMzl6TNMN20X13Hb8BGsf7+phhoFUAAAAASUVORK5CYII=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;img.png&quot;
+        title=&quot;&quot;
+        src=&quot;/static/7e3a2a8f612b72f5e94dbd8e45d5a249/f058b/img.png&quot;
+        srcset=&quot;/static/7e3a2a8f612b72f5e94dbd8e45d5a249/c26ae/img.png 158w,
+/static/7e3a2a8f612b72f5e94dbd8e45d5a249/6bdcf/img.png 315w,
+/static/7e3a2a8f612b72f5e94dbd8e45d5a249/f058b/img.png 630w,
+/static/7e3a2a8f612b72f5e94dbd8e45d5a249/40601/img.png 945w,
+/static/7e3a2a8f612b72f5e94dbd8e45d5a249/96e86/img.png 1089w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;스크립트를 정말로 실행할 것인지 묻는 화면이다.&lt;/p&gt;
+&lt;p&gt;거침없이 &lt;code&gt;&amp;#x3C;Yes&gt;&lt;/code&gt;를 입력하자&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/e036e01ff9f816fce2041bf6684daa31/2cffa/img_1.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 52.53164556962025%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAYAAAB/Ca1DAAAACXBIWXMAAAsTAAALEwEAmpwYAAACAklEQVR42o2Su2/TUBSHbxxYKTOPSggqIUGhbtIkliitYAIEKBIbEguiI4imLe1QmIpwBAMSzDw6AcrARinUblQ78aO2laixG5s8CP07fpzEHUzUig6ffM/VPd+5PueygfESjlzawMC4gqOXFRwaUyP0x//CJVXEEl0UxJIGuOHPYCzdBEsFxC+wRAPsQjNCqy8mLkZI0fkM5WUoX/gNjl8Di6V9cBmPZHUMZSt48krHTF7DvFjC4tIGFp8reCqWQ16omBF15ESTvmWcvGaAJX3E0i5JGyT8Tjcke1zYpooBrk5ZcNQVSJKE9WIRRVmGLK3D0AyYug5d01Gr6gi8TQRba0jd+QLGt+lCXWGThKuhkMt0hT4mHzi4O23gxHUPp7MeTt32cPyGh8GbYXyM1h8KVNSxoJVkjGYLYKP7CgNcmbIxca8GNkR7VIANRzjv9/aWCzaqFQumJiPxP+HEfRufvhp4/d7G22Ubb/ZAKtLvmxaMsrT/DcMe+tRDBzstB51WlfpkolHfxB9ad5oVtAMHbkWFu2Whvu3Cr6nUQxLyrX4hTak35QBnbpWRW8jj4Wwej+b2YFbE4/k8phdeIjf3DIOTH8HG2jTlWmTKQqdnZ0KbngC9p7PqAVHovBvmkYwJOySUwbiRVXAj34gVxKnC4aR8YOL8j91cgv+J+Ll3+AumxAHqvR9WzgAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;img_1.png&quot;
+        title=&quot;&quot;
+        src=&quot;/static/e036e01ff9f816fce2041bf6684daa31/f058b/img_1.png&quot;
+        srcset=&quot;/static/e036e01ff9f816fce2041bf6684daa31/c26ae/img_1.png 158w,
+/static/e036e01ff9f816fce2041bf6684daa31/6bdcf/img_1.png 315w,
+/static/e036e01ff9f816fce2041bf6684daa31/f058b/img_1.png 630w,
+/static/e036e01ff9f816fce2041bf6684daa31/40601/img_1.png 945w,
+/static/e036e01ff9f816fce2041bf6684daa31/2cffa/img_1.png 1092w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;다음은 어떤 Kernel을 삭제할 것인지 묻는 화면이다.&lt;/p&gt;
+&lt;p&gt;현재 사용중인 커널은 표시되지 않으니 전부 지워도 무방하다.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;SPACE&lt;/code&gt;를 눌러 모두 선택한 뒤 &lt;code&gt;ENTER&lt;/code&gt;를 눌러 삭제하자&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 630px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/7efec4ab8c37e33f846215bb483a7870/96e86/img_2.png&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 51.89873417721519%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAACXBIWXMAAAsTAAALEwEAmpwYAAABlklEQVR42pWRy07CUBCG20oUn0SiCy9FWsAHcGei7vSBTFy5xFLqjXhLjIkaTXSh0gJyscCh3EHRB/mdXqJVN7r4MnPOzHw5k8ONyzrG4haC8RqCC4wigxD5O5xDFZzUgTBzBY4Xy3QxILpEz0X6DzQntcFF30h4R8Jw0Su0IcgdBKItjPgIyE2MegRkf60JgSIv2w9pkXBIwltXyEdJONdFaKUGJW1gO511SOwbUHYz0HYekdLuoezrSBwYDtvpPLSjDCaWdHCzXfAxn1CwhTNdhNdMPBfuUSroKBWJ5xzlGSd/yj2gbN8XHlHI2T1ZWOYdwqvnNNuHEHv9LZxfr6JhMbC6BVapgl1cg1VrYKwOy2rANCsw6b5u1+stMNOAuHpJs73vQnflHkLLZWipFFRVg6qoSG5sOtE5qykolCtK0smT6h605BZCi8c0+0Ir+4SfvxWxwE2eEtQ0dQJu+ozyky+mTn1nOz8EL+bcWXn4U9j2Cm9fSMPv51+8U0+f8P+ymKeXkSzSIJpe/A9NdzNpQMIbfAAKa83uq24kjQAAAABJRU5ErkJggg==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;img
+        class=&quot;gatsby-resp-image-image&quot;
+        alt=&quot;img_2.png&quot;
+        title=&quot;&quot;
+        src=&quot;/static/7efec4ab8c37e33f846215bb483a7870/f058b/img_2.png&quot;
+        srcset=&quot;/static/7efec4ab8c37e33f846215bb483a7870/c26ae/img_2.png 158w,
+/static/7efec4ab8c37e33f846215bb483a7870/6bdcf/img_2.png 315w,
+/static/7efec4ab8c37e33f846215bb483a7870/f058b/img_2.png 630w,
+/static/7efec4ab8c37e33f846215bb483a7870/40601/img_2.png 945w,
+/static/7efec4ab8c37e33f846215bb483a7870/96e86/img_2.png 1089w&quot;
+        sizes=&quot;(max-width: 630px) 100vw, 630px&quot;
+        style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        loading=&quot;lazy&quot;
+        decoding=&quot;async&quot;
+      /&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;&amp;#x3C;Yes&gt;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;스크립트 실행이 끝났다면 아래 명령어를 입력해서 남은 Kernel을 확인해보자&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;proxmox-boot-tool kernel list&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Manually selected kernels:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;None.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Automatically selected kernels:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;6.8.12-1-pve&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;이렇게 나오면 성공이다.&lt;/p&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item><item><title><![CDATA[Linux 환경에서 Docker 간편하게 설치하기]]></title><description><![CDATA[Linux 환경에서 Docker를 간편하게 설치하는 방법을 알아보자. Docker 설치 및 권한 설정 1. Docker 설치 2. 사용자 권한 설정 Docker 명령어를 sudo 없이 사용하기 위해 사용자를 docker 그룹에 추가해야 함…]]></description><link>https://blog.ggos3.xyz/도커-간편하게-설치하기/</link><guid isPermaLink="false">https://blog.ggos3.xyz/도커-간편하게-설치하기/</guid><pubDate>Sat, 11 Mar 2023 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Linux 환경에서 Docker를 간편하게 설치하는 방법을 알아보자.&lt;/p&gt;
+&lt;h2 id=&quot;docker-설치-및-권한-설정&quot; style=&quot;position:relative;&quot;&gt;Docker 설치 및 권한 설정&lt;a href=&quot;#docker-%EC%84%A4%EC%B9%98-%EB%B0%8F-%EA%B6%8C%ED%95%9C-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;docker 설치 및 권한 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;h3 id=&quot;1-docker-설치&quot; style=&quot;position:relative;&quot;&gt;1. Docker 설치&lt;a href=&quot;#1-docker-%EC%84%A4%EC%B9%98&quot; aria-label=&quot;1 docker 설치 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;0&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;curl -L get.docker.com | sh&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;2-사용자-권한-설정&quot; style=&quot;position:relative;&quot;&gt;2. 사용자 권한 설정&lt;a href=&quot;#2-%EC%82%AC%EC%9A%A9%EC%9E%90-%EA%B6%8C%ED%95%9C-%EC%84%A4%EC%A0%95&quot; aria-label=&quot;2 사용자 권한 설정 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Docker 명령어를 &lt;code&gt;sudo&lt;/code&gt; 없이 사용하기 위해 사용자를 &lt;code&gt;docker&lt;/code&gt; 그룹에 추가해야 함&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;1&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;sudo usermod -aG docker &lt;/span&gt;&lt;span class=&quot;mtk4&quot;&gt;$USER&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;3-현재-세션에서-권한-적용&quot; style=&quot;position:relative;&quot;&gt;3. 현재 세션에서 권한 적용&lt;a href=&quot;#3-%ED%98%84%EC%9E%AC-%EC%84%B8%EC%85%98%EC%97%90%EC%84%9C-%EA%B6%8C%ED%95%9C-%EC%A0%81%EC%9A%A9&quot; aria-label=&quot;3 현재 세션에서 권한 적용 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;아래 명령어를 이용해 세션을 재시작 할 필요 없이 바로 권한을 적용할 수 있다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;2&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;newgrp docker&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&quot;설치-확인&quot; style=&quot;position:relative;&quot;&gt;설치 확인&lt;a href=&quot;#%EC%84%A4%EC%B9%98-%ED%99%95%EC%9D%B8&quot; aria-label=&quot;설치 확인 permalink&quot; class=&quot;heading-anchor after&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;설치를 전부 진행 했다면 명령어를 실행해 &lt;code&gt;docker&lt;/code&gt;가 정상적으로 설치 되었는지 확인한다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;3&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;docker run hello-world&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;정상적으로 설치되었다면 아래와 같은 메시지가 출력된다.&lt;/p&gt;
+&lt;pre class=&quot;grvsc-container one-dark-pro&quot; data-language=&quot;bash&quot; data-index=&quot;4&quot;&gt;&lt;code class=&quot;grvsc-code&quot;&gt;&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Hello from Docker!&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;This message shows that your installation appears to be working correctly.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;To generate this message, Docker took the following steps:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; 1. The Docker client contacted the Docker daemon.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; 2. The Docker daemon pulled the &lt;/span&gt;&lt;span class=&quot;mtk6&quot;&gt;&amp;quot;hello-world&amp;quot;&lt;/span&gt;&lt;span class=&quot;mtk1&quot;&gt; image from the Docker Hub.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    (arm64v8)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; 3. The Docker daemon created a new container from that image which runs the&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    executable that produces the output you are currently reading.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; 4. The Docker daemon streamed that output to the Docker client, which sent it&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;    to your terminal.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;To try something more ambitious, you can run an Ubuntu container with:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; $ docker run -it ubuntu bash&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;Share images, automate workflows, and more with a free Docker ID:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; https://hub.docker.com/&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt;For more examples and ideas, visit:&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;grvsc-line&quot;&gt;&lt;span class=&quot;grvsc-source&quot;&gt;&lt;span class=&quot;mtk1&quot;&gt; https://docs.docker.com/get-started/&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;style class=&quot;grvsc-styles&quot;&gt;
+  .grvsc-container {
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1rem;
+    padding-top: var(--grvsc-padding-top, var(--grvsc-padding-v, 1rem));
+    padding-bottom: 1rem;
+    padding-bottom: var(--grvsc-padding-bottom, var(--grvsc-padding-v, 1rem));
+    border-radius: 8px;
+    border-radius: var(--grvsc-border-radius, 8px);
+    font-feature-settings: normal;
+    line-height: 1.4;
+  }
+  
+  .grvsc-code {
+    display: table;
+  }
+  
+  .grvsc-line {
+    display: table-row;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+  }
+  
+  .grvsc-line &gt; * {
+    position: relative;
+  }
+  
+  .grvsc-gutter-pad {
+    display: table-cell;
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  .grvsc-gutter {
+    display: table-cell;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter::before {
+    content: attr(data-content);
+  }
+  
+  .grvsc-source {
+    display: table-cell;
+    padding-left: 1.5rem;
+    padding-left: var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem));
+    padding-right: 1.5rem;
+    padding-right: var(--grvsc-padding-right, var(--grvsc-padding-h, 1.5rem));
+  }
+  
+  .grvsc-source:empty::after {
+    content: &apos; &apos;;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+  
+  .grvsc-gutter + .grvsc-source {
+    padding-left: 0.75rem;
+    padding-left: calc(var(--grvsc-padding-left, var(--grvsc-padding-h, 1.5rem)) / 2);
+  }
+  
+  /* Line transformer styles */
+  
+  .grvsc-has-line-highlighting &gt; .grvsc-code &gt; .grvsc-line::before {
+    content: &apos; &apos;;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .grvsc-line-diff-add::before {
+    background-color: var(--grvsc-line-diff-add-background-color, rgba(0, 255, 60, 0.2));
+  }
+  
+  .grvsc-line-diff-del::before {
+    background-color: var(--grvsc-line-diff-del-background-color, rgba(255, 0, 20, 0.2));
+  }
+  
+  .grvsc-line-number {
+    padding: 0 2px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  
+  .one-dark-pro {
+    background-color: #282c34;
+    color: #abb2bf;
+  }
+  .one-dark-pro .mtk1 { color: #ABB2BF; }
+  .one-dark-pro .mtk4 { color: #E06C75; }
+  .one-dark-pro .mtk6 { color: #98C379; }
+  .one-dark-pro .grvsc-line-highlighted::before {
+    background-color: var(--grvsc-line-highlighted-background-color, rgba(255, 255, 255, 0.1));
+    box-shadow: inset var(--grvsc-line-highlighted-border-width, 4px) 0 0 0 var(--grvsc-line-highlighted-border-color, rgba(255, 255, 255, 0.5));
+  }
+&lt;/style&gt;</content:encoded></item></channel></rss>
